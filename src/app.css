@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-900 text-dark-200 font-sans min-h-screen;
+  }
+
+  ::selection {
+    @apply bg-primary-500/30 text-white;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-600 rounded;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-500;
+  }
+}
+
+@layer components {
+  /* Glass panel effect */
+  .glass-panel {
+    @apply bg-dark-800/70 backdrop-blur-xl border border-white/5;
+  }
+
+  .light .glass-panel {
+    @apply bg-white/80 border-black/5;
+  }
+
+  /* Main layout container */
+  .main-container {
+    @apply max-w-[1600px] mx-auto;
+  }
+
+  /* Section styling */
+  .section {
+    @apply min-h-screen px-6 py-20 md:px-12 lg:px-24;
+  }
+
+  .container-narrow {
+    @apply mx-auto max-w-5xl;
+  }
+
+  .container-wide {
+    @apply mx-auto max-w-7xl;
+  }
+
+  /* Typography */
+  .heading-1 {
+    @apply text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-bold tracking-tight md:text-4xl;
+  }
+
+  .heading-3 {
+    @apply text-xl font-semibold md:text-2xl;
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium transition-all duration-200;
+  }
+
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 shadow-lg shadow-primary-500/20;
+  }
+
+  .btn-secondary {
+    @apply btn border border-dark-700 bg-dark-800/50 text-dark-100 hover:border-dark-600 hover:bg-dark-800;
+  }
+
+  /* Cards */
+  .card {
+    @apply rounded-2xl border border-dark-800 bg-dark-900/50 p-6 backdrop-blur-sm transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply card hover:border-dark-700 hover:bg-dark-900/80 hover:shadow-xl hover:shadow-dark-950/50;
+  }
+
+  /* Service cards */
+  .service-card {
+    @apply p-5 rounded-xl bg-dark-50 dark:bg-dark-800/80 border border-dark-200 dark:border-dark-700 transition-colors;
+  }
+
+  .service-card:hover {
+    @apply border-primary-500/50;
+  }
+
+  .service-card-featured {
+    @apply relative overflow-hidden rounded-xl p-1 border border-white/10 shadow-lg;
+  }
+
+  .service-card-featured-inner {
+    @apply h-full bg-dark-900/10 backdrop-blur-sm rounded-lg p-6 flex flex-col justify-between hover:bg-white/5 transition;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full rounded-lg border border-dark-700 bg-dark-800/50 px-4 py-3 text-dark-100 placeholder-dark-500 transition-all duration-200 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20;
+  }
+
+  .label {
+    @apply mb-2 block text-sm font-medium text-dark-300;
+  }
+
+  /* Calendar day button */
+  .calendar-day-btn {
+    @apply py-1.5 rounded-md text-dark-600 dark:text-dark-400 transition;
+  }
+
+  .calendar-day-btn:hover {
+    @apply bg-primary-500/10 text-primary-400;
+  }
+
+  .calendar-day-btn.selected {
+    @apply bg-primary-500 text-white shadow-lg shadow-primary-500/50 font-bold;
+  }
+
+  /* Time slot styling */
+  .time-slot {
+    @apply flex border-b border-dark-100 dark:border-dark-800 h-14 relative;
+  }
+
+  .time-slot:hover {
+    @apply bg-dark-50 dark:bg-dark-800/50;
+  }
+
+  .time-slot-available {
+    @apply absolute inset-x-2 top-2 bottom-2 bg-primary-500/5 border border-primary-500/20 rounded flex items-center justify-center;
+  }
+
+  .time-slot-available:hover {
+    @apply bg-primary-500/10;
+  }
+
+  /* Status badge */
+  .status-badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .status-badge-open {
+    @apply status-badge bg-primary-500/10 border border-primary-500/20 text-primary-400;
+  }
+
+  /* Icon container */
+  .icon-container {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center;
+  }
+
+  /* Tech tag */
+  .tech-tag {
+    @apply px-2 py-1 bg-white/20 rounded text-xs text-white font-mono;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+}
