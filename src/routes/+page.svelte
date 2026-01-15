@@ -4,10 +4,12 @@
   import ServicesPanel from '$components/sections/ServicesPanel.svelte';
   import SchedulingPanel from '$components/sections/SchedulingPanel.svelte';
   import Footer from '$components/sections/Footer.svelte';
+  import { initLanguage } from '$lib/i18n/index.svelte';
 
   let mounted = $state(false);
 
   onMount(() => {
+    initLanguage();
     mounted = true;
   });
 </script>
@@ -37,20 +39,20 @@
 {#if mounted}
   <div class="min-h-screen flex flex-col">
     <!-- Main content area -->
-    <div class="flex-1 p-4 md:p-6 lg:p-8 pb-16 overflow-y-auto">
+    <div class="flex-1 p-4 md:p-6 lg:p-8 pb-16">
       <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <!-- Left column: Profile -->
-        <div class="lg:col-span-3 flex flex-col gap-6">
+        <!-- Left column: Profile (sticky on desktop) -->
+        <div class="lg:col-span-3 lg:sticky lg:top-8 lg:self-start overscroll-none">
           <ProfilePanel />
         </div>
 
         <!-- Center column: Services -->
-        <div class="lg:col-span-6 flex flex-col gap-6">
+        <div class="lg:col-span-6 overscroll-none">
           <ServicesPanel />
         </div>
 
-        <!-- Right column: Scheduling -->
-        <div class="lg:col-span-3 h-full">
+        <!-- Right column: Scheduling (sticky on desktop) -->
+        <div class="lg:col-span-3 lg:sticky lg:top-8 lg:self-start overscroll-none">
           <SchedulingPanel />
         </div>
       </div>

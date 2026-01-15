@@ -1,187 +1,319 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { fly, fade } from 'svelte/transition';
-  import type { Lead } from '$lib/types/database';
+	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { getFirebaseDb } from '$lib/firebase/client';
+	import { COLLECTIONS } from '$lib/firebase/collections';
+	import {
+		collection,
+		query,
+		orderBy,
+		limit,
+		getDocs,
+		where,
+		Timestamp
+	} from 'firebase/firestore';
+	import type { Client, Meet, Page } from '$lib/types/firestore';
 
-  // Placeholder data - would come from Supabase
-  let leads = $state<Lead[]>([
-    {
-      id: '1',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      name: 'Juan García',
-      email: 'juan@startup.com',
-      company: 'TechStartup',
-      services_interested: ['cto'],
-      budget: '15k_50k',
-      timeline: null,
-      message: 'Buscamos un CTO para liderar nuestro equipo técnico...',
-      how_found: null,
-      source: 'direct',
-      utm_campaign: null,
-      utm_medium: null,
-      landing_page: '/',
-      user_agent: null,
-      ip_country: 'ES',
-      status: 'new',
-      notes: null,
-      follow_up_date: null,
-      estimated_value: 15000,
-      archived: false
-    }
-  ]);
+	// Data state
+	let clients = $state<Client[]>([]);
+	let meets = $state<Meet[]>([]);
+	let pages = $state<Page[]>([]);
+	let loading = $state(true);
 
-  let stats = $state({
-    totalLeads: 12,
-    newLeads: 3,
-    conversionRate: 25,
-    visitorsThisMonth: 1240
-  });
+	// Stats
+	let stats = $state({
+		totalClients: 0,
+		newClientsThisWeek: 0,
+		totalMeets: 0,
+		upcomingMeets: 0,
+		completedMeets: 0,
+		visitorsThisMonth: 0,
+		conversionRate: 0
+	});
 
-  let selectedStatus = $state<string>('all');
+	const statusColors: Record<string, string> = {
+		new: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+		contacted: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+		in_progress: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+		won: 'bg-green-500/20 text-green-400 border-green-500/30',
+		lost: 'bg-red-500/20 text-red-400 border-red-500/30',
+		spam: 'bg-dark-500/20 text-dark-400 border-dark-500/30',
+		pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+		confirmed: 'bg-green-500/20 text-green-400 border-green-500/30',
+		cancelled: 'bg-red-500/20 text-red-400 border-red-500/30',
+		completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+		no_show: 'bg-dark-500/20 text-dark-400 border-dark-500/30'
+	};
 
-  const statusColors: Record<string, string> = {
-    new: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    contacted: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-    in_progress: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-    won: 'bg-green-500/20 text-green-400 border-green-500/30',
-    lost: 'bg-red-500/20 text-red-400 border-red-500/30',
-    spam: 'bg-dark-500/20 text-dark-400 border-dark-500/30'
-  };
+	const statusLabels: Record<string, string> = {
+		new: 'Nuevo',
+		contacted: 'Contactado',
+		in_progress: 'En progreso',
+		won: 'Ganado',
+		lost: 'Perdido',
+		spam: 'Spam',
+		pending: 'Pendiente',
+		confirmed: 'Confirmada',
+		cancelled: 'Cancelada',
+		completed: 'Completada',
+		no_show: 'No asistio'
+	};
 
-  const statusLabels: Record<string, string> = {
-    new: 'Nuevo',
-    contacted: 'Contactado',
-    in_progress: 'En progreso',
-    won: 'Ganado',
-    lost: 'Perdido',
-    spam: 'Spam'
-  };
+	function formatDate(ts: Timestamp) {
+		return ts.toDate().toLocaleDateString('es-ES', {
+			day: 'numeric',
+			month: 'short'
+		});
+	}
 
-  function formatDate(dateString: string) {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  }
+	function formatDateTime(ts: Timestamp) {
+		return ts.toDate().toLocaleDateString('es-ES', {
+			day: 'numeric',
+			month: 'short',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
 
-  // TODO: Add Supabase realtime subscription
-  // onMount(() => {
-  //   const channel = supabase
-  //     .channel('leads')
-  //     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'leads' }, (payload) => {
-  //       leads = [payload.new as Lead, ...leads];
-  //     })
-  //     .subscribe();
-  //
-  //   return () => channel.unsubscribe();
-  // });
+	async function loadData() {
+		const db = getFirebaseDb();
+		if (!db) {
+			loading = false;
+			return;
+		}
+
+		const now = new Date();
+		const startOfWeek = new Date(now);
+		startOfWeek.setDate(now.getDate() - now.getDay());
+		startOfWeek.setHours(0, 0, 0, 0);
+
+		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+		try {
+			// Fetch clients (last 10)
+			const clientsQuery = query(
+				collection(db, COLLECTIONS.CLIENTS),
+				orderBy('created_at', 'desc'),
+				limit(10)
+			);
+			const clientsSnapshot = await getDocs(clientsQuery);
+			clients = clientsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Client);
+
+			// Fetch all clients for stats
+			const allClientsQuery = query(collection(db, COLLECTIONS.CLIENTS));
+			const allClientsSnapshot = await getDocs(allClientsQuery);
+			const allClients = allClientsSnapshot.docs.map(
+				(doc) => ({ id: doc.id, ...doc.data() }) as Client
+			);
+
+			// Fetch meets
+			const meetsQuery = query(collection(db, COLLECTIONS.MEETS), orderBy('start_time', 'asc'));
+			const meetsSnapshot = await getDocs(meetsQuery);
+			meets = meetsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Meet);
+
+			// Fetch pages (this month)
+			const pagesQuery = query(
+				collection(db, COLLECTIONS.PAGES),
+				where('created_at', '>=', Timestamp.fromDate(startOfMonth))
+			);
+			const pagesSnapshot = await getDocs(pagesQuery);
+			pages = pagesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Page);
+
+			// Calculate stats
+			stats.totalClients = allClients.length;
+			stats.newClientsThisWeek = allClients.filter(
+				(c) => c.created_at.toDate() >= startOfWeek
+			).length;
+			stats.totalMeets = meets.length;
+			stats.upcomingMeets = meets.filter(
+				(m) => m.start_time.toDate() > now && m.status === 'confirmed'
+			).length;
+			stats.completedMeets = meets.filter((m) => m.status === 'completed').length;
+			stats.visitorsThisMonth = pages.length;
+
+			const wonClients = allClients.filter((c) => c.status === 'won').length;
+			stats.conversionRate =
+				stats.totalClients > 0 ? Math.round((wonClients / stats.totalClients) * 100) : 0;
+		} catch (error) {
+			console.error('Error loading data:', error);
+		}
+
+		loading = false;
+	}
+
+	onMount(() => {
+		loadData();
+	});
 </script>
 
 <svelte:head>
-  <title>Admin Dashboard | Sergiy Alonso</title>
-  <meta name="robots" content="noindex, nofollow" />
+	<title>Dashboard | Admin</title>
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
 </svelte:head>
 
-<div class="min-h-screen bg-dark-950 px-6 py-8">
-  <div class="mx-auto max-w-7xl">
-    <!-- Header -->
-    <header class="mb-8 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-white">Dashboard</h1>
-        <p class="text-dark-400">Gestión de leads y métricas</p>
-      </div>
-      <a href="/" class="btn-secondary text-sm">
-        ← Volver al sitio
-      </a>
-    </header>
+<div class="px-6 py-8">
+	<div class="max-w-7xl mx-auto">
+		<!-- Header -->
+		<header class="mb-8">
+			<h1 class="text-2xl font-bold text-white">Dashboard</h1>
+			<p class="text-dark-400">Resumen de actividad y metricas</p>
+		</header>
 
-    <!-- KPI Cards -->
-    <div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="card">
-        <p class="text-sm text-dark-400">Leads totales</p>
-        <p class="text-3xl font-bold text-white">{stats.totalLeads}</p>
-        <p class="mt-1 text-xs text-green-400">+12% vs mes anterior</p>
-      </div>
-      <div class="card">
-        <p class="text-sm text-dark-400">Leads nuevos</p>
-        <p class="text-3xl font-bold text-primary-400">{stats.newLeads}</p>
-        <p class="mt-1 text-xs text-dark-500">Esta semana</p>
-      </div>
-      <div class="card">
-        <p class="text-sm text-dark-400">Tasa de conversión</p>
-        <p class="text-3xl font-bold text-white">{stats.conversionRate}%</p>
-        <p class="mt-1 text-xs text-green-400">+5% vs mes anterior</p>
-      </div>
-      <div class="card">
-        <p class="text-sm text-dark-400">Visitantes</p>
-        <p class="text-3xl font-bold text-white">{stats.visitorsThisMonth.toLocaleString()}</p>
-        <p class="mt-1 text-xs text-dark-500">Este mes</p>
-      </div>
-    </div>
+		{#if loading}
+			<div class="flex items-center justify-center py-20">
+				<span class="animate-spin text-primary-500">
+					<span class="material-icons-round text-3xl">refresh</span>
+				</span>
+			</div>
+		{:else}
+			<!-- KPI Cards -->
+			<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" in:fly={{ y: 20, duration: 300 }}>
+				<div class="card">
+					<div class="flex items-center justify-between mb-2">
+						<p class="text-sm text-dark-400">Leads totales</p>
+						<span class="material-icons-round text-primary-500 text-xl">people</span>
+					</div>
+					<p class="text-3xl font-bold text-white">{stats.totalClients}</p>
+					<p class="mt-1 text-xs text-primary-400">+{stats.newClientsThisWeek} esta semana</p>
+				</div>
 
-    <!-- Leads Section -->
-    <section class="card">
-      <div class="mb-6 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-white">Leads recientes</h2>
-        <select bind:value={selectedStatus} class="input w-auto">
-          <option value="all">Todos los estados</option>
-          {#each Object.entries(statusLabels) as [value, label]}
-            <option {value}>{label}</option>
-          {/each}
-        </select>
-      </div>
+				<div class="card">
+					<div class="flex items-center justify-between mb-2">
+						<p class="text-sm text-dark-400">Reuniones pendientes</p>
+						<span class="material-icons-round text-green-500 text-xl">event</span>
+					</div>
+					<p class="text-3xl font-bold text-white">{stats.upcomingMeets}</p>
+					<p class="mt-1 text-xs text-dark-500">{stats.completedMeets} completadas</p>
+				</div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-dark-800 text-left">
-              <th class="pb-3 text-sm font-medium text-dark-400">Nombre</th>
-              <th class="pb-3 text-sm font-medium text-dark-400">Empresa</th>
-              <th class="pb-3 text-sm font-medium text-dark-400">Servicio</th>
-              <th class="pb-3 text-sm font-medium text-dark-400">Estado</th>
-              <th class="pb-3 text-sm font-medium text-dark-400">Fecha</th>
-              <th class="pb-3 text-sm font-medium text-dark-400"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each leads as lead}
-              <tr class="border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors">
-                <td class="py-4">
-                  <div>
-                    <p class="font-medium text-white">{lead.name}</p>
-                    <p class="text-sm text-dark-400">{lead.email}</p>
-                  </div>
-                </td>
-                <td class="py-4 text-dark-300">{lead.company || '-'}</td>
-                <td class="py-4 text-dark-300">
-                  {lead.services_interested?.join(', ') || '-'}
-                </td>
-                <td class="py-4">
-                  <span class="inline-block rounded-full border px-2 py-1 text-xs {statusColors[lead.status]}">
-                    {statusLabels[lead.status]}
-                  </span>
-                </td>
-                <td class="py-4 text-sm text-dark-400">
-                  {formatDate(lead.created_at)}
-                </td>
-                <td class="py-4">
-                  <button class="text-primary-400 hover:text-primary-300 text-sm">
-                    Ver
-                  </button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
+				<div class="card">
+					<div class="flex items-center justify-between mb-2">
+						<p class="text-sm text-dark-400">Conversion</p>
+						<span class="material-icons-round text-yellow-500 text-xl">trending_up</span>
+					</div>
+					<p class="text-3xl font-bold text-white">{stats.conversionRate}%</p>
+					<p class="mt-1 text-xs text-dark-500">Leads a clientes</p>
+				</div>
 
-      {#if leads.length === 0}
-        <div class="py-12 text-center text-dark-400">
-          No hay leads para mostrar
-        </div>
-      {/if}
-    </section>
-  </div>
+				<div class="card">
+					<div class="flex items-center justify-between mb-2">
+						<p class="text-sm text-dark-400">Visitas</p>
+						<span class="material-icons-round text-blue-500 text-xl">visibility</span>
+					</div>
+					<p class="text-3xl font-bold text-white">{stats.visitorsThisMonth.toLocaleString()}</p>
+					<p class="mt-1 text-xs text-dark-500">Este mes</p>
+				</div>
+			</div>
+
+			<div class="grid lg:grid-cols-2 gap-6">
+				<!-- Upcoming Meetings -->
+				<section class="card" in:fly={{ y: 20, duration: 300, delay: 100 }}>
+					<div class="flex items-center justify-between mb-6">
+						<h2 class="text-lg font-semibold text-white flex items-center gap-2">
+							<span class="material-icons-round text-primary-500">calendar_today</span>
+							Proximas reuniones
+						</h2>
+						<a href="/admin/meetings" class="text-primary-400 hover:text-primary-300 text-sm">
+							Ver todas
+						</a>
+					</div>
+
+					{#if meets.filter((m) => m.start_time.toDate() > new Date() && m.status === 'confirmed').length === 0}
+						<div class="py-8 text-center text-dark-500">
+							<span class="material-icons-round text-3xl mb-2 opacity-50">event_busy</span>
+							<p class="text-sm">No hay reuniones programadas</p>
+						</div>
+					{:else}
+						<div class="space-y-3">
+							{#each meets
+								.filter((m) => m.start_time.toDate() > new Date() && m.status === 'confirmed')
+								.slice(0, 5) as meet}
+								<div
+									class="flex items-center gap-4 p-3 rounded-lg bg-dark-800/50 hover:bg-dark-800 transition"
+								>
+									<div
+										class="w-12 h-12 rounded-lg bg-primary-500/10 flex items-center justify-center shrink-0"
+									>
+										<span class="material-icons-round text-primary-400">videocam</span>
+									</div>
+									<div class="flex-1 min-w-0">
+										<p class="font-medium text-white truncate">{meet.guest_name}</p>
+										<p class="text-xs text-dark-400 truncate">{meet.meeting_objective}</p>
+									</div>
+									<div class="text-right shrink-0">
+										<p class="text-sm text-white">{formatDateTime(meet.start_time)}</p>
+										{#if meet.meet_link}
+											<a
+												href={meet.meet_link}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="text-xs text-primary-400 hover:text-primary-300"
+											>
+												Unirse
+											</a>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</section>
+
+				<!-- Recent Leads -->
+				<section class="card" in:fly={{ y: 20, duration: 300, delay: 200 }}>
+					<div class="flex items-center justify-between mb-6">
+						<h2 class="text-lg font-semibold text-white flex items-center gap-2">
+							<span class="material-icons-round text-primary-500">person_add</span>
+							Leads recientes
+						</h2>
+						<a href="/admin/leads" class="text-primary-400 hover:text-primary-300 text-sm">
+							Ver todos
+						</a>
+					</div>
+
+					{#if clients.length === 0}
+						<div class="py-8 text-center text-dark-500">
+							<span class="material-icons-round text-3xl mb-2 opacity-50">inbox</span>
+							<p class="text-sm">No hay leads aun</p>
+						</div>
+					{:else}
+						<div class="space-y-3">
+							{#each clients.slice(0, 5) as client}
+								<div
+									class="flex items-center gap-4 p-3 rounded-lg bg-dark-800/50 hover:bg-dark-800 transition"
+								>
+									<div
+										class="w-10 h-10 rounded-full bg-dark-700 flex items-center justify-center shrink-0"
+									>
+										<span class="text-sm font-bold text-dark-300">
+											{client.name
+												.split(' ')
+												.map((n) => n[0])
+												.join('')
+												.slice(0, 2)
+												.toUpperCase()}
+										</span>
+									</div>
+									<div class="flex-1 min-w-0">
+										<p class="font-medium text-white truncate">{client.name}</p>
+										<p class="text-xs text-dark-400 truncate">{client.company || client.email}</p>
+									</div>
+									<div class="text-right shrink-0">
+										<span
+											class="inline-block rounded-full border px-2 py-0.5 text-xs {statusColors[
+												client.status
+											]}"
+										>
+											{statusLabels[client.status]}
+										</span>
+										<p class="text-xs text-dark-500 mt-1">{formatDate(client.created_at)}</p>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</section>
+			</div>
+		{/if}
+	</div>
 </div>

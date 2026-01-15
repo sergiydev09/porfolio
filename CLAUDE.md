@@ -17,19 +17,21 @@ Portfolio web profesional de Sergiy Alonso para ofrecer servicios de CTO, Tech L
 - **Framework**: SvelteKit 2+ con Svelte 5 (runes)
 - **Styling**: Tailwind CSS
 - **Animaciones**: Svelte nativo (`transition:`, `spring`, `tweened`)
-- **Backend**: Supabase (Auth, PostgreSQL, Realtime)
+- **Backend**: Firebase (Auth, Firestore)
 - **Language**: TypeScript
 - **Package Manager**: Bun (ultra-fast)
 
 ## Commands
 
 ```bash
-bun run dev          # Start dev server (localhost:5173)
-bun run build        # Build for production
-bun run check        # Type check
-bun run format       # Prettier
-bun install          # Install dependencies (~4s vs ~30s npm)
+bun run dev --port 8080  # Start dev server (SIEMPRE en puerto 8080)
+bun run build            # Build for production
+bun run check            # Type check
+bun run format           # Prettier
+bun install              # Install dependencies (~4s vs ~30s npm)
 ```
+
+> **IMPORTANTE**: Siempre usar puerto 8080 para desarrollo y pruebas.
 
 ---
 
@@ -44,7 +46,7 @@ Configuracion local en `.claude/`:
 ├── agents/
 │   ├── ux-ui.md            # UX/UI, animaciones, accesibilidad
 │   ├── testing.md          # Vitest, Playwright, TDD
-│   ├── sveltekit.md        # Routing, SSR, Supabase, Svelte 5
+│   ├── sveltekit.md        # Routing, SSR, Firebase, Svelte 5
 │   └── security-reviewer.md # Secretos, vulnerabilidades
 └── skills/
     └── secure-commit/
@@ -66,7 +68,7 @@ Ejecuta un commit seguro:
 |--------|--------------|
 | `ux-ui` | Diseno, animaciones, accesibilidad |
 | `testing` | Vitest, Playwright, TDD |
-| `sveltekit` | Routing, SSR, Supabase, Svelte 5 |
+| `sveltekit` | Routing, SSR, Firebase, Svelte 5 |
 | `security-reviewer` | Secretos, vulnerabilidades |
 
 ---
@@ -102,15 +104,19 @@ Ejecuta un commit seguro:
 
 ---
 
-## Supabase
+## Firebase
 
 ```bash
 # .env
-PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-PUBLIC_SUPABASE_ANON_KEY=eyJ...
+PUBLIC_FIREBASE_API_KEY=AIzaSy...
+PUBLIC_FIREBASE_AUTH_DOMAIN=project.firebaseapp.com
+PUBLIC_FIREBASE_PROJECT_ID=project-id
+PUBLIC_FIREBASE_STORAGE_BUCKET=project.firebasestorage.app
+PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
+PUBLIC_FIREBASE_APP_ID=1:123:web:abc
 ```
 
-Migraciones en `supabase/migrations/`.
+Security Rules en `firestore.rules`.
 
 ---
 

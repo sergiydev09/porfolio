@@ -1,8 +1,14 @@
 <script lang="ts">
+  interface Tech {
+    name: string;
+    logo: string;
+    invert?: boolean;
+  }
+
   const basePath = '/images/brands';
 
   // Mobile & Cross-platform
-  const mobileTech = [
+  const mobileTech: Tech[] = [
     { name: 'Kotlin', logo: `${basePath}/kotlin.svg` },
     { name: 'Swift', logo: `${basePath}/swift.svg` },
     { name: 'KMP', logo: `${basePath}/kmp.svg` },
@@ -12,7 +18,7 @@
   ];
 
   // Backend & Cloud
-  const backendTech = [
+  const backendTech: Tech[] = [
     { name: 'Node.js', logo: `${basePath}/nodejs.svg` },
     { name: 'Python', logo: `${basePath}/python.svg` },
     { name: 'TypeScript', logo: `${basePath}/typescript.svg` },
@@ -22,7 +28,7 @@
   ];
 
   // AI Models
-  const aiTech = [
+  const aiTech: Tech[] = [
     { name: 'Claude', logo: `${basePath}/claude.png` },
     { name: 'ChatGPT', logo: `${basePath}/chatgpt.svg` },
     { name: 'Gemini', logo: `${basePath}/gemini.png` },

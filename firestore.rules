@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function para verificar admin
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'sergiy.alonso@gmail.com';
+    }
+
+    // Clients (leads)
+    match /clients/{clientId} {
+      // Cualquiera puede crear (formulario de contacto publico)
+      allow create: if true;
+      // Solo admin puede leer, actualizar, eliminar
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Meets (reuniones)
+    match /meets/{meetId} {
+      // Cualquiera puede crear (booking publico)
+      allow create: if true;
+      // Cualquiera puede leer (para mostrar disponibilidad)
+      allow read: if true;
+      // Solo admin puede actualizar/eliminar
+      allow update, delete: if isAdmin();
+    }
+
+    // Pages (analytics)
+    match /pages/{pageId} {
+      // Cualquiera puede crear (tracking anonimo)
+      allow create: if true;
+      // Solo admin puede leer
+      allow read: if isAdmin();
+      // Nadie puede modificar/eliminar
+      allow update, delete: if false;
+    }
+  }
+}

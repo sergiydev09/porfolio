@@ -5,7 +5,7 @@
   let visible = $state(false);
   let sectionRef: HTMLElement;
 
-  // Placeholder projects - these would come from Supabase in production
+  // Placeholder projects - these would come from Firestore in production
   const projects = [
     {
       title: 'Fintech Startup',

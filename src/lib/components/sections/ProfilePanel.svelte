@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { fly } from 'svelte/transition';
+  import { getTranslations } from '$lib/i18n/index.svelte';
+
+  let i18n = $derived(getTranslations());
 
   const clients = [
     {
@@ -35,15 +37,15 @@
     }
   ];
 
-  const stats = [
-    { value: '10+', label: 'Years' },
-    { value: '10+', label: 'Projects' }
+  // Stats config (values only, labels from i18n)
+  const statsConfig = [
+    { value: '10+', key: 'years' as const },
+    { value: '10+', key: 'projects' as const }
   ];
 </script>
 
 <div
-  class="glass-panel bg-dark-800 rounded-2xl p-6 flex flex-col shadow-lg h-full lg:sticky lg:top-8"
-  in:fly={{ x: -30, duration: 500, delay: 100 }}
+  class="glass-panel bg-dark-800 rounded-2xl p-6 flex flex-col shadow-lg h-full"
 >
   <!-- Header -->
   <div class="flex justify-end items-center mb-6">
@@ -77,23 +79,22 @@
       </div>
       <h1 class="text-2xl font-bold text-white">Sergiy Alonso Villar</h1>
     </div>
-    <p class="text-dark-400 text-sm mb-4">Tech Lead</p>
+    <p class="text-dark-400 text-sm mb-4">{i18n.profile.role}</p>
 
     <!-- Status badge -->
     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold mb-6">
       <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-      OPEN FOR ROLES
+      {i18n.profile.status}
     </div>
 
     <p class="text-sm text-dark-400 mb-3 leading-relaxed">
-      10+ years experience.<br/>
-      Specializing in mobile, multiplatform, and AI.
+      {@html i18n.profile.bio}
     </p>
 
     <!-- Location -->
     <div class="flex items-center gap-2 text-dark-400 text-sm mb-4">
       <span class="material-icons-round text-base">location_on</span>
-      <span>Madrid, Spain</span>
+      <span>{i18n.profile.location}</span>
     </div>
 
     <!-- Social links -->
@@ -122,7 +123,7 @@
   <!-- Clients section -->
   <div class="w-full border-t border-dark-700 pt-6 mb-4">
     <p class="text-xs font-bold text-dark-500 uppercase tracking-widest mb-4 text-center">
-      Projects for
+      {i18n.profile.projectsFor}
     </p>
     <div class="flex flex-col gap-5 items-center">
       {#each clients as client}
@@ -140,7 +141,7 @@
   <!-- Consultancies section -->
   <div class="w-full border-t border-dark-700 pt-6 mb-6">
     <p class="text-xs font-bold text-dark-500 uppercase tracking-widest mb-4 text-center">
-      Worked At
+      {i18n.profile.workedAt}
     </p>
     <div class="flex flex-wrap justify-center gap-6">
       {#each consultancies as consultancy}
@@ -157,10 +158,10 @@
 
   <!-- Stats -->
   <div class="w-full border-t border-dark-700 pt-6 grid grid-cols-2 gap-4 mt-auto">
-    {#each stats as stat}
+    {#each statsConfig as stat}
       <div class="text-center">
         <span class="block text-2xl font-bold text-white">{stat.value}</span>
-        <span class="text-xs text-dark-500 uppercase tracking-wide">{stat.label}</span>
+        <span class="text-xs text-dark-500 uppercase tracking-wide">{i18n.profile.stats[stat.key]}</span>
       </div>
     {/each}
   </div>

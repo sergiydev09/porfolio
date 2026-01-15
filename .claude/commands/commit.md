@@ -33,7 +33,7 @@ git diff --staged
 - Tokens: `(token|bearer|auth)\s*[:=]\s*['"][^'"]+['"]`
 - AWS keys: `AKIA[0-9A-Z]{16}`
 - Private keys: `-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----`
-- Supabase keys reales: `eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+`
+- JWT tokens reales: `eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+`
 - URLs con credenciales: `://[^:]+:[^@]+@`
 - .env con valores reales (no placeholders)
 

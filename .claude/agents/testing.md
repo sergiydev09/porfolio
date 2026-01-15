@@ -95,18 +95,20 @@ it('updates reactive state correctly', async () => {
 });
 ```
 
-### Testing Async/Supabase
+### Testing Async/Firebase
 ```typescript
 import { vi } from 'vitest';
 
-// Mock Supabase client
-vi.mock('$lib/supabase', () => ({
-  createSupabaseClient: () => ({
-    from: () => ({
-      select: vi.fn().mockResolvedValue({ data: [], error: null }),
-      insert: vi.fn().mockResolvedValue({ data: { id: '1' }, error: null })
-    })
-  })
+// Mock Firebase client
+vi.mock('$lib/firebase/client', () => ({
+  getFirebaseDb: () => ({})
+}));
+
+vi.mock('firebase/firestore', () => ({
+  collection: vi.fn(),
+  addDoc: vi.fn().mockResolvedValue({ id: '1' }),
+  getDocs: vi.fn().mockResolvedValue({ docs: [] }),
+  serverTimestamp: vi.fn()
 }));
 
 it('submits contact form successfully', async () => {

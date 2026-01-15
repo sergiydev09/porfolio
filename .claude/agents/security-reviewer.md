@@ -47,9 +47,9 @@ git diff --staged
 - URLs construidas con input de usuario -> SSRF
 - Queries SQL construidas con strings -> SQL Injection
 
-**Supabase:**
-- RLS policies demasiado permisivas
-- Uso de service_role key en cliente
+**Firebase:**
+- Security Rules demasiado permisivas
+- Uso de Admin SDK en cliente
 - Queries sin filtros adecuados
 
 **Formularios:**
@@ -86,7 +86,7 @@ Ignorar estos patrones:
 
 | Archivo | Linea | Tipo | Severidad |
 |---------|-------|------|-----------|
-| src/lib/supabase.ts | 15 | JWT Token | CRITICO |
+| src/lib/firebase/client.ts | 15 | API Key expuesta | CRITICO |
 
 ### Acciones Requeridas
 
