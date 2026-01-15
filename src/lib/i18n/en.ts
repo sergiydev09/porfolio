@@ -177,6 +177,7 @@ export const en: Translations = {
     selectDay: 'Select a day to see available times',
     available: 'Available',
     busy: 'Busy',
+    tooSoon: 'Too soon',
     outsideHours: 'Outside hours',
     duration: 'Duration: 1 hour',
     schedule: 'Hours: 8:00 - 22:00 (Madrid)',

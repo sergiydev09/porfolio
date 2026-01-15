@@ -4,6 +4,7 @@
   import ServicesPanel from '$components/sections/ServicesPanel.svelte';
   import SchedulingPanel from '$components/sections/SchedulingPanel.svelte';
   import Footer from '$components/sections/Footer.svelte';
+  import SchemaOrg from '$lib/components/SchemaOrg.svelte';
   import { initLanguage } from '$lib/i18n/index.svelte';
 
   let mounted = $state(false);
@@ -14,20 +15,52 @@
   });
 </script>
 
+<SchemaOrg />
+
 <svelte:head>
-  <title>Sergiy Alonso Villar | Tech Lead Portfolio</title>
+  <!-- Primary Meta Tags -->
+  <title>Sergiy Alonso | Tech Lead & Desarrollador Mobile Madrid</title>
   <meta
     name="description"
-    content="Tech Lead especializado en desarrollo mobile (Android, Flutter, KMP), integraciones con IA y liderazgo técnico. 15+ años de experiencia, 40+ proyectos."
+    content="Tech Lead con 10+ años de experiencia. Desarrollo Android, Flutter y Kotlin Multiplatform. CTO fraccional, MVPs en 4-8 semanas. Madrid. Consulta gratis."
   />
-  <meta property="og:title" content="Sergiy Alonso Villar | Tech Lead Portfolio" />
+  <meta
+    name="keywords"
+    content="programador android madrid, desarrollador flutter españa, desarrollo apps moviles freelance, cto fraccional startup, desarrollo mvp rapido, tech lead mobile, kotlin multiplatform, integracion ia apps, consultor tecnico mobile"
+  />
+  <meta name="author" content="Sergiy Alonso Villar" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <meta name="google-site-verification" content="PI4sPdzvN-tN9FOQemg_MpKtMaGna_f4JrEDg8FvPEk" />
+  <link rel="canonical" href="https://savaitech.web.app" />
+
+  <!-- Hreflang for language alternates -->
+  <link rel="alternate" hreflang="es" href="https://savaitech.web.app/" />
+  <link rel="alternate" hreflang="en" href="https://savaitech.web.app/" />
+  <link rel="alternate" hreflang="x-default" href="https://savaitech.web.app/" />
+
+  <!-- OpenGraph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://savaitech.web.app" />
+  <meta property="og:title" content="Sergiy Alonso | Tech Lead & Desarrollador Mobile Madrid" />
   <meta
     property="og:description"
-    content="Tech Lead especializado en desarrollo mobile, multiplatform ecosystems e integraciones con IA. Madrid, España."
+    content="Tech Lead con 10+ años. Desarrollo Android, Flutter, KMP. CTO fraccional, MVPs rápidos. Madrid."
   />
-  <meta property="og:type" content="website" />
-  <meta name="keywords" content="Tech Lead, Android, Flutter, KMP, Kotlin Multiplatform, AI Integration, Mobile Development, Madrid" />
-  <link rel="canonical" href="https://sergiyalonso.tech" />
+  <meta property="og:image" content="https://savaitech.web.app/images/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:locale:alternate" content="en_GB" />
+  <meta property="og:site_name" content="Sergiy Alonso - Tech Lead" />
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sergiy Alonso | Tech Lead & Desarrollador Mobile Madrid" />
+  <meta
+    name="twitter:description"
+    content="Tech Lead con 10+ años. Desarrollo Android, Flutter, KMP. CTO fraccional. Madrid."
+  />
+  <meta name="twitter:image" content="https://savaitech.web.app/images/og-image.png" />
 
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />

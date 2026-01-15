@@ -175,6 +175,7 @@ export const es = {
     selectDay: 'Selecciona un día para ver los horarios disponibles',
     available: 'Disponible',
     busy: 'Ocupado',
+    tooSoon: 'Muy pronto',
     outsideHours: 'Fuera de horario',
     duration: 'Duración: 1 hora',
     schedule: 'Horario: 8:00 - 22:00 (Madrid)',

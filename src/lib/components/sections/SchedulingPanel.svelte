@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
+	import { onMount } from 'svelte';
 	import { getFirebaseDb } from '$lib/firebase/client';
 	import { COLLECTIONS } from '$lib/firebase/collections';
 	import {
@@ -16,10 +17,14 @@
 
 	let i18n = $derived(getTranslations());
 
+	// Minimum hours before a meeting can be booked
+	const MIN_HOURS_NOTICE = 6;
+
 	// Calendar state
 	let currentDate = $state(new Date());
 	let selectedDate = $state<Date | null>(null);
 	let selectedTime = $state<string | null>(null);
+	let initialized = $state(false);
 
 	// Booking form state
 	let showBookingForm = $state(false);
@@ -34,6 +39,9 @@
 	let existingMeetings = $state<Meet[]>([]);
 	let loadingMeetings = $state(false);
 
+	// Reference to time slots container for scrolling
+	let timeSlotsContainer = $state<HTMLDivElement | null>(null);
+
 	// Generate time slots from 8:00 to 22:00 in 15-minute increments
 	const allTimeSlots = $derived.by(() => {
 		const slots: string[] = [];
@@ -46,6 +54,77 @@
 		}
 		return slots;
 	});
+
+	// Auto-select first available day on mount
+	onMount(async () => {
+		await selectFirstAvailableDay();
+		initialized = true;
+	});
+
+	async function selectFirstAvailableDay() {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		// Check up to 60 days ahead
+		for (let i = 0; i < 60; i++) {
+			const checkDate = new Date(today);
+			checkDate.setDate(today.getDate() + i);
+
+			// Check if this day has any available slots
+			if (checkDayHasAvailableSlots(checkDate)) {
+				selectedDate = checkDate;
+				// Update current month view if needed
+				if (checkDate.getMonth() !== currentDate.getMonth() ||
+				    checkDate.getFullYear() !== currentDate.getFullYear()) {
+					currentDate = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
+				}
+				await loadMeetingsForDate(checkDate);
+				// Scroll to first available slot after a small delay for DOM to update
+				setTimeout(() => scrollToFirstAvailableSlot(), 150);
+				return;
+			}
+		}
+
+		// Fallback to today if no available day found
+		selectedDate = today;
+		await loadMeetingsForDate(today);
+	}
+
+	function checkDayHasAvailableSlots(date: Date): boolean {
+		const now = new Date();
+		const minBookingTime = new Date(now.getTime() + MIN_HOURS_NOTICE * 60 * 60 * 1000);
+
+		// Check each working hour slot (8:00 to 21:00) to see if any is available
+		for (let hour = 8; hour <= 21; hour++) {
+			const slotStart = new Date(date);
+			slotStart.setHours(hour, 0, 0, 0);
+
+			// Slot is available if it's after the minimum booking time
+			if (slotStart >= minBookingTime) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	function scrollToFirstAvailableSlot() {
+		if (!timeSlotsContainer || !selectedDate) return;
+
+		// Find index of first available slot
+		const firstAvailableIndex = allTimeSlots.findIndex((time) => isSlotAvailable(time));
+
+		if (firstAvailableIndex === -1) return;
+
+		// Each slot is 56px (h-14 = 3.5rem = 56px)
+		const slotHeight = 56;
+		const scrollPosition = Math.max(0, (firstAvailableIndex - 1) * slotHeight);
+
+		timeSlotsContainer.scrollTo({
+			top: scrollPosition,
+			behavior: 'smooth'
+		});
+	}
 
 	// Get calendar data for current month
 	const calendarData = $derived.by(() => {
@@ -85,30 +164,18 @@
 		return [...prevDays, ...currentDays, ...nextDays];
 	});
 
-	// Check if a time slot is available
-	function isSlotAvailable(time: string): boolean {
+	// Check if a slot is too soon (less than MIN_HOURS_NOTICE hours from now)
+	function isSlotTooSoon(time: string): boolean {
 		if (!selectedDate) return false;
 
 		const [hours, minutes] = time.split(':').map(Number);
 		const slotStart = new Date(selectedDate);
 		slotStart.setHours(hours, minutes, 0, 0);
 
-		const slotEnd = new Date(slotStart);
-		slotEnd.setHours(slotEnd.getHours() + 1);
+		const now = new Date();
+		const minBookingTime = new Date(now.getTime() + MIN_HOURS_NOTICE * 60 * 60 * 1000);
 
-		// Check if slot end time is within working hours (before 23:00)
-		if (slotEnd.getHours() > 22 || (slotEnd.getHours() === 22 && slotEnd.getMinutes() > 0)) {
-			return false;
-		}
-
-		// Check against existing meetings
-		return !existingMeetings.some((meeting) => {
-			const meetingStart = meeting.start_time.toDate();
-			const meetingEnd = meeting.end_time.toDate();
-
-			// Check for overlap
-			return slotStart < meetingEnd && slotEnd > meetingStart;
-		});
+		return slotStart < minBookingTime;
 	}
 
 	// Check if a slot is during existing meeting
@@ -124,6 +191,30 @@
 			const meetingEnd = meeting.end_time.toDate();
 			return slotStart >= meetingStart && slotStart < meetingEnd;
 		});
+	}
+
+	// Check if slot is outside working hours
+	function isSlotOutsideHours(time: string): boolean {
+		if (!selectedDate) return false;
+
+		const [hours, minutes] = time.split(':').map(Number);
+		const slotStart = new Date(selectedDate);
+		slotStart.setHours(hours, minutes, 0, 0);
+
+		const slotEnd = new Date(slotStart);
+		slotEnd.setHours(slotEnd.getHours() + 1);
+
+		// Check if slot end time is within working hours (before 23:00)
+		return slotEnd.getHours() > 22 || (slotEnd.getHours() === 22 && slotEnd.getMinutes() > 0);
+	}
+
+	// Check if a time slot is available (not busy, not too soon, within hours)
+	function isSlotAvailable(time: string): boolean {
+		if (!selectedDate) return false;
+		if (isSlotTooSoon(time)) return false;
+		if (isSlotBusy(time)) return false;
+		if (isSlotOutsideHours(time)) return false;
+		return true;
 	}
 
 	// Load meetings for selected date
@@ -160,7 +251,7 @@
 		loadingMeetings = false;
 	}
 
-	function selectDay(dayData: { day: number; isCurrentMonth: boolean; date: Date }) {
+	async function selectDay(dayData: { day: number; isCurrentMonth: boolean; date: Date }) {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
@@ -169,7 +260,9 @@
 		selectedDate = dayData.date;
 		selectedTime = null;
 		showBookingForm = false;
-		loadMeetingsForDate(dayData.date);
+		await loadMeetingsForDate(dayData.date);
+		// Scroll to first available slot
+		setTimeout(() => scrollToFirstAvailableSlot(), 100);
 	}
 
 	function selectTime(time: string) {
@@ -307,7 +400,7 @@
 </script>
 
 <div
-	class="glass-panel bg-dark-800 rounded-2xl p-0 h-full max-h-[calc(100vh-3rem)] flex flex-col shadow-lg overflow-hidden"
+	class="glass-panel bg-dark-800 rounded-2xl p-0 h-full max-h-[calc(100vh-6rem)] flex flex-col shadow-lg overflow-hidden"
 >
 	<!-- Calendar header -->
 	<div class="p-6 border-b border-dark-700 bg-dark-800 z-10">
@@ -454,7 +547,7 @@
 		</div>
 	{:else}
 		<!-- Time slots -->
-		<div class="flex-1 overflow-y-auto relative bg-dark-950">
+		<div class="flex-1 overflow-y-auto relative bg-dark-950" bind:this={timeSlotsContainer}>
 			{#if !selectedDate}
 				<div
 					class="flex flex-col items-center justify-center h-full text-center p-8 text-dark-500"
@@ -473,10 +566,10 @@
 					{#each allTimeSlots as time}
 						{@const available = isSlotAvailable(time)}
 						{@const busy = isSlotBusy(time)}
+						{@const tooSoon = isSlotTooSoon(time)}
+						{@const outsideHours = isSlotOutsideHours(time)}
 						<button
-							class="time-slot {available ? 'cursor-pointer group' : ''} {busy
-								? 'bg-dark-900/50'
-								: ''}"
+							class="time-slot {available ? 'cursor-pointer group' : ''}"
 							onclick={() => selectTime(time)}
 							disabled={!available}
 						>
@@ -495,10 +588,14 @@
 										</span>
 									</div>
 								{:else if busy}
-									<div class="flex items-center px-4 h-full">
-										<span class="text-xs text-dark-500 italic">{i18n.scheduling.busy}</span>
+									<div class="time-slot-busy">
+										<span class="text-xs text-red-400/70 font-medium">{i18n.scheduling.busy}</span>
 									</div>
-								{:else if time >= '21:01'}
+								{:else if tooSoon}
+									<div class="time-slot-too-soon">
+										<span class="text-xs text-dark-500 italic">{i18n.scheduling.tooSoon}</span>
+									</div>
+								{:else if outsideHours}
 									<div class="flex items-center px-4 h-full">
 										<span class="text-xs text-dark-600 italic">{i18n.scheduling.outsideHours}</span>
 									</div>

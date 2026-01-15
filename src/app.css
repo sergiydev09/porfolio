@@ -131,24 +131,24 @@
 
   /* Calendar day button */
   .calendar-day-btn {
-    @apply py-1.5 rounded-md text-dark-600 dark:text-dark-400 transition;
+    @apply py-1.5 rounded-md text-dark-400 transition;
   }
 
-  .calendar-day-btn:hover {
+  .calendar-day-btn:hover:not(:disabled) {
     @apply bg-primary-500/10 text-primary-400;
   }
 
   .calendar-day-btn.selected {
-    @apply bg-primary-500 text-white shadow-lg shadow-primary-500/50 font-bold;
+    @apply bg-primary-500/20 text-primary-400 border border-primary-500/50 font-semibold;
   }
 
   /* Time slot styling */
   .time-slot {
-    @apply flex border-b border-dark-100 dark:border-dark-800 h-14 relative;
+    @apply flex border-b border-dark-800 h-14 relative;
   }
 
-  .time-slot:hover {
-    @apply bg-dark-50 dark:bg-dark-800/50;
+  .time-slot:hover:not(:disabled) {
+    @apply bg-dark-800/50;
   }
 
   .time-slot-available {
@@ -157,6 +157,30 @@
 
   .time-slot-available:hover {
     @apply bg-primary-500/10;
+  }
+
+  .time-slot-busy {
+    @apply absolute inset-x-2 top-2 bottom-2 rounded flex items-center justify-center;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(239, 68, 68, 0.1) 4px,
+      rgba(239, 68, 68, 0.1) 8px
+    );
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .time-slot-too-soon {
+    @apply absolute inset-x-2 top-2 bottom-2 rounded flex items-center justify-center;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(100, 100, 100, 0.1) 4px,
+      rgba(100, 100, 100, 0.1) 8px
+    );
+    border: 1px dashed rgba(100, 100, 100, 0.3);
   }
 
   /* Status badge */
