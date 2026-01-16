@@ -451,7 +451,8 @@ async function createMeetingFromChat(data: BookingData, config: Record<string, a
           },
           attendees: [
             { email: email },
-            { email: config.calendar?.owner_email || 'contacto.savaitech@gmail.com' }
+            { email: config.calendar?.owner_email || 'contacto.savaitech@gmail.com' },
+            ...(config.calendar?.cc_email ? [{ email: config.calendar.cc_email }] : [])
           ],
           conferenceData: {
             createRequest: {
@@ -559,7 +560,8 @@ export const createCalendarEvent = functions
         },
         attendees: [
           { email: guestEmail },
-          { email: config.calendar?.owner_email || 'contacto.savaitech@gmail.com' }
+          { email: config.calendar?.owner_email || 'contacto.savaitech@gmail.com' },
+          ...(config.calendar?.cc_email ? [{ email: config.calendar.cc_email }] : [])
         ],
         conferenceData: {
           createRequest: {

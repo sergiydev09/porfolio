@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
-	import { onMount, onDestroy } from 'svelte';
-	import { getFirebaseDb } from '$lib/firebase/client';
-	import { COLLECTIONS } from '$lib/firebase/collections';
+	import { fade } from "svelte/transition";
+	import { onMount, onDestroy } from "svelte";
+	import { getFirebaseDb } from "$lib/firebase/client";
+	import { COLLECTIONS } from "$lib/firebase/collections";
 	import {
 		collection,
 		query,
@@ -11,10 +11,10 @@
 		addDoc,
 		Timestamp,
 		serverTimestamp,
-		type Unsubscribe
-	} from 'firebase/firestore';
-	import type { Meet } from '$lib/types/firestore';
-	import { getTranslations, getLanguage } from '$lib/i18n/index.svelte';
+		type Unsubscribe,
+	} from "firebase/firestore";
+	import type { Meet } from "$lib/types/firestore";
+	import { getTranslations, getLanguage } from "$lib/i18n/index.svelte";
 
 	let i18n = $derived(getTranslations());
 
@@ -29,9 +29,9 @@
 
 	// Booking form state
 	let showBookingForm = $state(false);
-	let guestName = $state('');
-	let guestEmail = $state('');
-	let meetingObjective = $state('');
+	let guestName = $state("");
+	let guestEmail = $state("");
+	let meetingObjective = $state("");
 	let isSubmitting = $state(false);
 	let bookingSuccess = $state(false);
 	let bookingError = $state<string | null>(null);
@@ -50,7 +50,7 @@
 		for (let hour = 8; hour < 22; hour++) {
 			for (let minute = 0; minute < 60; minute += 15) {
 				slots.push(
-					`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+					`${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`,
 				);
 			}
 		}
@@ -76,9 +76,15 @@
 			if (checkDayHasAvailableSlots(checkDate)) {
 				selectedDate = checkDate;
 				// Update current month view if needed
-				if (checkDate.getMonth() !== currentDate.getMonth() ||
-				    checkDate.getFullYear() !== currentDate.getFullYear()) {
-					currentDate = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
+				if (
+					checkDate.getMonth() !== currentDate.getMonth() ||
+					checkDate.getFullYear() !== currentDate.getFullYear()
+				) {
+					currentDate = new Date(
+						checkDate.getFullYear(),
+						checkDate.getMonth(),
+						1,
+					);
 				}
 				loadMeetingsForDate(checkDate);
 				// Scroll to first available slot after a small delay for DOM to update
@@ -94,7 +100,9 @@
 
 	function checkDayHasAvailableSlots(date: Date): boolean {
 		const now = new Date();
-		const minBookingTime = new Date(now.getTime() + MIN_HOURS_NOTICE * 60 * 60 * 1000);
+		const minBookingTime = new Date(
+			now.getTime() + MIN_HOURS_NOTICE * 60 * 60 * 1000,
+		);
 
 		// Check each working hour slot (8:00 to 21:00) to see if any is available
 		for (let hour = 8; hour <= 21; hour++) {
@@ -114,17 +122,22 @@
 		if (!timeSlotsContainer || !selectedDate) return;
 
 		// Find index of first available slot
-		const firstAvailableIndex = allTimeSlots.findIndex((time) => isSlotAvailable(time));
+		const firstAvailableIndex = allTimeSlots.findIndex((time) =>
+			isSlotAvailable(time),
+		);
 
 		if (firstAvailableIndex === -1) return;
 
 		// Each slot is 56px (h-14 = 3.5rem = 56px)
 		const slotHeight = 56;
-		const scrollPosition = Math.max(0, (firstAvailableIndex - 1) * slotHeight);
+		const scrollPosition = Math.max(
+			0,
+			(firstAvailableIndex - 1) * slotHeight,
+		);
 
 		timeSlotsContainer.scrollTo({
 			top: scrollPosition,
-			behavior: 'smooth'
+			behavior: "smooth",
 		});
 	}
 
@@ -144,23 +157,46 @@
 		const prevMonthLastDay = new Date(year, month, 0).getDate();
 
 		// Previous month days
-		const prevDays: { day: number; isCurrentMonth: boolean; date: Date }[] = [];
+		const prevDays: { day: number; isCurrentMonth: boolean; date: Date }[] =
+			[];
 		for (let i = startDayOfWeek - 1; i >= 0; i--) {
 			const day = prevMonthLastDay - i;
-			prevDays.push({ day, isCurrentMonth: false, date: new Date(year, month - 1, day) });
+			prevDays.push({
+				day,
+				isCurrentMonth: false,
+				date: new Date(year, month - 1, day),
+			});
 		}
 
 		// Current month days
-		const currentDays: { day: number; isCurrentMonth: boolean; date: Date }[] = [];
+		const currentDays: {
+			day: number;
+			isCurrentMonth: boolean;
+			date: Date;
+		}[] = [];
 		for (let i = 1; i <= daysInMonth; i++) {
-			currentDays.push({ day: i, isCurrentMonth: true, date: new Date(year, month, i) });
+			currentDays.push({
+				day: i,
+				isCurrentMonth: true,
+				date: new Date(year, month, i),
+			});
 		}
 
 		// Next month days to fill the grid
-		const totalCells = Math.ceil((prevDays.length + currentDays.length) / 7) * 7;
-		const nextDays: { day: number; isCurrentMonth: boolean; date: Date }[] = [];
-		for (let i = 1; nextDays.length < totalCells - prevDays.length - currentDays.length; i++) {
-			nextDays.push({ day: i, isCurrentMonth: false, date: new Date(year, month + 1, i) });
+		const totalCells =
+			Math.ceil((prevDays.length + currentDays.length) / 7) * 7;
+		const nextDays: { day: number; isCurrentMonth: boolean; date: Date }[] =
+			[];
+		for (
+			let i = 1;
+			nextDays.length < totalCells - prevDays.length - currentDays.length;
+			i++
+		) {
+			nextDays.push({
+				day: i,
+				isCurrentMonth: false,
+				date: new Date(year, month + 1, i),
+			});
 		}
 
 		return [...prevDays, ...currentDays, ...nextDays];
@@ -170,12 +206,14 @@
 	function isSlotTooSoon(time: string): boolean {
 		if (!selectedDate) return false;
 
-		const [hours, minutes] = time.split(':').map(Number);
+		const [hours, minutes] = time.split(":").map(Number);
 		const slotStart = new Date(selectedDate);
 		slotStart.setHours(hours, minutes, 0, 0);
 
 		const now = new Date();
-		const minBookingTime = new Date(now.getTime() + MIN_HOURS_NOTICE * 60 * 60 * 1000);
+		const minBookingTime = new Date(
+			now.getTime() + MIN_HOURS_NOTICE * 60 * 60 * 1000,
+		);
 
 		return slotStart < minBookingTime;
 	}
@@ -186,7 +224,7 @@
 	function isSlotBusy(time: string): boolean {
 		if (!selectedDate) return false;
 
-		const [hours, minutes] = time.split(':').map(Number);
+		const [hours, minutes] = time.split(":").map(Number);
 		const slotStart = new Date(selectedDate);
 		slotStart.setHours(hours, minutes, 0, 0);
 		const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
@@ -203,7 +241,7 @@
 	function isSlotOutsideHours(time: string): boolean {
 		if (!selectedDate) return false;
 
-		const [hours, minutes] = time.split(':').map(Number);
+		const [hours, minutes] = time.split(":").map(Number);
 		const slotStart = new Date(selectedDate);
 		slotStart.setHours(hours, minutes, 0, 0);
 
@@ -211,7 +249,10 @@
 		slotEnd.setHours(slotEnd.getHours() + 1);
 
 		// Check if slot end time is within working hours (before 23:00)
-		return slotEnd.getHours() > 22 || (slotEnd.getHours() === 22 && slotEnd.getMinutes() > 0);
+		return (
+			slotEnd.getHours() > 22 ||
+			(slotEnd.getHours() === 22 && slotEnd.getMinutes() > 0)
+		);
 	}
 
 	// Check if a time slot is available (not busy, not too soon, within hours)
@@ -247,8 +288,8 @@
 
 		const meetsQuery = query(
 			collection(db, COLLECTIONS.MEETS),
-			where('start_time', '>=', Timestamp.fromDate(startOfDay)),
-			where('start_time', '<=', Timestamp.fromDate(endOfDay))
+			where("start_time", ">=", Timestamp.fromDate(startOfDay)),
+			where("start_time", "<=", Timestamp.fromDate(endOfDay)),
 		);
 
 		// Subscribe to real-time updates
@@ -257,13 +298,16 @@
 			(snapshot) => {
 				existingMeetings = snapshot.docs
 					.map((doc) => ({ id: doc.id, ...doc.data() }) as Meet)
-					.filter((m) => m.status === 'pending' || m.status === 'confirmed');
+					.filter(
+						(m) =>
+							m.status === "pending" || m.status === "confirmed",
+					);
 				loadingMeetings = false;
 			},
 			(error) => {
-				console.error('Error loading meetings:', error);
+				console.error("Error loading meetings:", error);
 				loadingMeetings = false;
-			}
+			},
 		);
 	}
 
@@ -274,7 +318,11 @@
 		}
 	});
 
-	function selectDay(dayData: { day: number; isCurrentMonth: boolean; date: Date }) {
+	function selectDay(dayData: {
+		day: number;
+		isCurrentMonth: boolean;
+		date: Date;
+	}) {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
@@ -295,20 +343,28 @@
 	}
 
 	function prevMonth() {
-		currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+		currentDate = new Date(
+			currentDate.getFullYear(),
+			currentDate.getMonth() - 1,
+			1,
+		);
 	}
 
 	function nextMonth() {
-		currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+		currentDate = new Date(
+			currentDate.getFullYear(),
+			currentDate.getMonth() + 1,
+			1,
+		);
 	}
 
 	function formatSelectedDateTime(): string {
-		if (!selectedDate || !selectedTime) return '';
+		if (!selectedDate || !selectedTime) return "";
 
-		const [hours, minutes] = selectedTime.split(':').map(Number);
+		const [hours, minutes] = selectedTime.split(":").map(Number);
 		const endHour = hours + 1;
 
-		return `${selectedDate.getDate()} ${i18n.scheduling.months[selectedDate.getMonth()]} - ${selectedTime} a ${endHour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+		return `${selectedDate.getDate()} ${i18n.scheduling.months[selectedDate.getMonth()]} - ${selectedTime} a ${endHour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 	}
 
 	function isToday(date: Date): boolean {
@@ -336,7 +392,13 @@
 	}
 
 	async function submitBooking() {
-		if (!selectedDate || !selectedTime || !guestName || !guestEmail || !meetingObjective) {
+		if (
+			!selectedDate ||
+			!selectedTime ||
+			!guestName ||
+			!guestEmail ||
+			!meetingObjective
+		) {
 			bookingError = i18n.scheduling.errors.fillAll;
 			return;
 		}
@@ -358,7 +420,7 @@
 			return;
 		}
 
-		const [hours, minutes] = selectedTime.split(':').map(Number);
+		const [hours, minutes] = selectedTime.split(":").map(Number);
 		const startTime = new Date(selectedDate);
 		startTime.setHours(hours, minutes, 0, 0);
 
@@ -370,28 +432,33 @@
 
 		try {
 			// Create Google Calendar event with Meet
-			const calendarResponse = await fetch('/api/calendar', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					guestName,
-					guestEmail,
-					meetingObjective,
-					startTime: startTime.toISOString(),
-					endTime: endTime.toISOString(),
-					language: getLanguage()
-				})
-			});
+			const calendarResponse = await fetch(
+				"https://europe-west1-savaitech.cloudfunctions.net/createCalendarEvent",
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						guestName,
+						guestEmail,
+						meetingObjective,
+						startTime: startTime.toISOString(),
+						endTime: endTime.toISOString(),
+						language: getLanguage(),
+					}),
+				},
+			);
 
 			if (calendarResponse.ok) {
 				const calendarData = await calendarResponse.json();
 				meetLink = calendarData.meetLink;
 				calendarEventId = calendarData.eventId;
 			} else {
-				console.warn('Calendar API failed, continuing without Meet link');
+				console.warn(
+					"Calendar API failed, continuing without Meet link",
+				);
 			}
 		} catch (calendarError) {
-			console.warn('Calendar API error:', calendarError);
+			console.warn("Calendar API error:", calendarError);
 			// Continue without Meet link - we'll still save the booking
 		}
 
@@ -402,15 +469,15 @@
 				meeting_objective: meetingObjective,
 				start_time: Timestamp.fromDate(startTime),
 				end_time: Timestamp.fromDate(endTime),
-				timezone: 'Europe/Madrid',
+				timezone: "Europe/Madrid",
 				meet_link: meetLink,
 				calendar_event_id: calendarEventId,
-				status: 'confirmed',
+				status: "confirmed",
 				cancelled_at: null,
 				cancellation_reason: null,
 				admin_notes: null,
 				created_at: serverTimestamp(),
-				updated_at: serverTimestamp()
+				updated_at: serverTimestamp(),
 			});
 
 			// Success!
@@ -419,9 +486,9 @@
 
 			// Reset form after delay
 			setTimeout(() => {
-				guestName = '';
-				guestEmail = '';
-				meetingObjective = '';
+				guestName = "";
+				guestEmail = "";
+				meetingObjective = "";
 				selectedTime = null;
 				showBookingForm = false;
 				bookingSuccess = false;
@@ -430,7 +497,7 @@
 				}
 			}, 3000);
 		} catch (error) {
-			console.error('Booking error:', error);
+			console.error("Booking error:", error);
 			bookingError = i18n.scheduling.errors.generic;
 			isSubmitting = false;
 		}
@@ -449,19 +516,33 @@
 	<div class="p-6 border-b border-dark-700 bg-dark-800 z-10">
 		<div class="flex justify-between items-center mb-6">
 			<h2 class="text-xl font-bold text-white flex items-center gap-2">
-				<span class="material-icons-round text-primary-500">calendar_month</span>
+				<span class="material-icons-round text-primary-500"
+					>calendar_month</span
+				>
 				{i18n.scheduling.title}
 			</h2>
 			<div class="flex items-center gap-1 bg-dark-800 rounded-lg p-0.5">
-				<button class="p-1 rounded-md hover:bg-dark-700 shadow-sm transition" onclick={prevMonth}>
-					<span class="material-icons-round text-dark-500 text-sm">chevron_left</span>
+				<button
+					class="p-1 rounded-md hover:bg-dark-700 shadow-sm transition"
+					onclick={prevMonth}
+				>
+					<span class="material-icons-round text-dark-500 text-sm"
+						>chevron_left</span
+					>
 				</button>
-				<span class="text-xs font-bold text-dark-200 px-2 min-w-[100px] text-center">
+				<span
+					class="text-xs font-bold text-dark-200 px-2 min-w-[100px] text-center"
+				>
 					{i18n.scheduling.months[currentDate.getMonth()]}
 					{currentDate.getFullYear()}
 				</span>
-				<button class="p-1 rounded-md hover:bg-dark-700 shadow-sm transition" onclick={nextMonth}>
-					<span class="material-icons-round text-dark-500 text-sm">chevron_right</span>
+				<button
+					class="p-1 rounded-md hover:bg-dark-700 shadow-sm transition"
+					onclick={nextMonth}
+				>
+					<span class="material-icons-round text-dark-500 text-sm"
+						>chevron_right</span
+					>
 				</button>
 			</div>
 		</div>
@@ -471,7 +552,11 @@
 			<!-- Week days header -->
 			<div class="grid grid-cols-7 mb-2 text-center">
 				{#each i18n.scheduling.weekDays as day, i}
-					<span class="text-[10px] font-bold {i === 2 ? 'text-primary-500' : 'text-dark-500'}">
+					<span
+						class="text-[10px] font-bold {i === 2
+							? 'text-primary-500'
+							: 'text-dark-500'}"
+					>
 						{day}
 					</span>
 				{/each}
@@ -481,8 +566,13 @@
 			<div class="grid grid-cols-7 gap-1 text-center text-xs">
 				{#each calendarData as dayData}
 					<button
-						class="calendar-day-btn {isSelectedDate(dayData.date) ? 'selected' : ''} {isToday(dayData.date) ? 'ring-1 ring-primary-500/50' : ''}"
-						class:opacity-30={!dayData.isCurrentMonth || isPastDate(dayData.date)}
+						class="calendar-day-btn {isSelectedDate(dayData.date)
+							? 'selected'
+							: ''} {isToday(dayData.date)
+							? 'ring-1 ring-primary-500/50'
+							: ''}"
+						class:opacity-30={!dayData.isCurrentMonth ||
+							isPastDate(dayData.date)}
 						class:cursor-not-allowed={isPastDate(dayData.date)}
 						onclick={() => selectDay(dayData)}
 						disabled={isPastDate(dayData.date)}
@@ -501,13 +591,20 @@
 			transition:fade={{ duration: 200 }}
 		>
 			{#if bookingSuccess}
-				<div class="flex flex-col items-center justify-center h-full text-center p-4">
+				<div
+					class="flex flex-col items-center justify-center h-full text-center p-4"
+				>
 					<div
 						class="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mb-4"
 					>
-						<span class="material-icons-round text-green-400 text-3xl">check_circle</span>
+						<span
+							class="material-icons-round text-green-400 text-3xl"
+							>check_circle</span
+						>
 					</div>
-					<h3 class="text-lg font-bold text-white mb-2">{i18n.scheduling.success.title}</h3>
+					<h3 class="text-lg font-bold text-white mb-2">
+						{i18n.scheduling.success.title}
+					</h3>
 					<p class="text-dark-400 text-sm">
 						{i18n.scheduling.success.message}
 					</p>
@@ -519,7 +616,9 @@
 							class="text-dark-400 hover:text-white transition flex items-center gap-1 text-sm"
 							onclick={cancelBooking}
 						>
-							<span class="material-icons-round text-sm">arrow_back</span>
+							<span class="material-icons-round text-sm"
+								>arrow_back</span
+							>
 							{i18n.scheduling.form.back}
 						</button>
 						<span class="text-xs text-primary-400 font-medium">
@@ -529,35 +628,44 @@
 
 					<div class="space-y-3">
 						<div>
-							<label for="guest-name" class="label text-xs">{i18n.scheduling.form.fullName}</label>
+							<label for="guest-name" class="label text-xs"
+								>{i18n.scheduling.form.fullName}</label
+							>
 							<input
 								id="guest-name"
 								type="text"
 								bind:value={guestName}
 								class="input text-sm py-2"
-								placeholder={i18n.scheduling.form.namePlaceholder}
+								placeholder={i18n.scheduling.form
+									.namePlaceholder}
 							/>
 						</div>
 
 						<div>
-							<label for="guest-email" class="label text-xs">{i18n.scheduling.form.email}</label>
+							<label for="guest-email" class="label text-xs"
+								>{i18n.scheduling.form.email}</label
+							>
 							<input
 								id="guest-email"
 								type="email"
 								bind:value={guestEmail}
 								class="input text-sm py-2"
-								placeholder={i18n.scheduling.form.emailPlaceholder}
+								placeholder={i18n.scheduling.form
+									.emailPlaceholder}
 							/>
 						</div>
 
 						<div>
-							<label for="meeting-objective" class="label text-xs">{i18n.scheduling.form.objective}</label>
+							<label for="meeting-objective" class="label text-xs"
+								>{i18n.scheduling.form.objective}</label
+							>
 							<textarea
 								id="meeting-objective"
 								bind:value={meetingObjective}
 								class="input text-sm py-2 resize-none"
 								rows="3"
-								placeholder={i18n.scheduling.form.objectivePlaceholder}
+								placeholder={i18n.scheduling.form
+									.objectivePlaceholder}
 							></textarea>
 						</div>
 					</div>
@@ -577,12 +685,16 @@
 					>
 						{#if isSubmitting}
 							<span class="animate-spin">
-								<span class="material-icons-round text-sm">refresh</span>
+								<span class="material-icons-round text-sm"
+									>refresh</span
+								>
 							</span>
 							{i18n.scheduling.form.submitting}
 						{:else}
 							{i18n.scheduling.form.submit}
-							<span class="material-icons-round text-sm">event_available</span>
+							<span class="material-icons-round text-sm"
+								>event_available</span
+							>
 						{/if}
 					</button>
 				</div>
@@ -590,12 +702,17 @@
 		</div>
 	{:else}
 		<!-- Time slots -->
-		<div class="flex-1 overflow-y-auto relative bg-dark-950" bind:this={timeSlotsContainer}>
+		<div
+			class="flex-1 overflow-y-auto relative bg-dark-950"
+			bind:this={timeSlotsContainer}
+		>
 			{#if !selectedDate}
 				<div
 					class="flex flex-col items-center justify-center h-full text-center p-8 text-dark-500"
 				>
-					<span class="material-icons-round text-4xl mb-2 opacity-50">event</span>
+					<span class="material-icons-round text-4xl mb-2 opacity-50"
+						>event</span
+					>
 					<p class="text-sm">{i18n.scheduling.selectDay}</p>
 				</div>
 			{:else if loadingMeetings}
@@ -612,7 +729,9 @@
 						{@const tooSoon = isSlotTooSoon(time)}
 						{@const outsideHours = isSlotOutsideHours(time)}
 						<button
-							class="time-slot {available ? 'cursor-pointer group' : ''}"
+							class="time-slot {available
+								? 'cursor-pointer group'
+								: ''}"
 							onclick={() => selectTime(time)}
 							disabled={!available}
 						>
@@ -623,7 +742,9 @@
 							</div>
 							<div class="flex-1 relative">
 								{#if available}
-									<div class="time-slot-available group-hover:bg-primary-500/10 transition">
+									<div
+										class="time-slot-available group-hover:bg-primary-500/10 transition"
+									>
 										<span
 											class="text-xs text-primary-400 font-medium opacity-0 group-hover:opacity-100 transition"
 										>
@@ -632,15 +753,25 @@
 									</div>
 								{:else if busy}
 									<div class="time-slot-busy">
-										<span class="text-xs text-red-400/70 font-medium">{i18n.scheduling.busy}</span>
+										<span
+											class="text-xs text-red-400/70 font-medium"
+											>{i18n.scheduling.busy}</span
+										>
 									</div>
 								{:else if tooSoon}
 									<div class="time-slot-too-soon">
-										<span class="text-xs text-dark-500 italic">{i18n.scheduling.tooSoon}</span>
+										<span
+											class="text-xs text-dark-500 italic"
+											>{i18n.scheduling.tooSoon}</span
+										>
 									</div>
 								{:else if outsideHours}
 									<div class="flex items-center px-4 h-full">
-										<span class="text-xs text-dark-600 italic">{i18n.scheduling.outsideHours}</span>
+										<span
+											class="text-xs text-dark-600 italic"
+											>{i18n.scheduling
+												.outsideHours}</span
+										>
 									</div>
 								{/if}
 							</div>
@@ -654,7 +785,9 @@
 	<!-- Footer info -->
 	{#if selectedDate && !showBookingForm}
 		<div class="p-4 border-t border-dark-700 bg-dark-800">
-			<div class="flex items-center justify-between text-xs text-dark-400">
+			<div
+				class="flex items-center justify-between text-xs text-dark-400"
+			>
 				<span>{i18n.scheduling.duration}</span>
 				<span>{i18n.scheduling.schedule}</span>
 			</div>

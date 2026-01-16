@@ -279,7 +279,7 @@ function getMadridOffset(date) {
 }
 // Create meeting from chat booking data
 async function createMeetingFromChat(data, config) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     const { name, email, objective, date, time } = data;
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -365,7 +365,7 @@ async function createMeetingFromChat(data, config) {
                 const t = meetingTexts.es;
                 const event = {
                     summary: `${t.meetingWith} ${name}`,
-                    description: `**${t.objective}:**\n${objective || t.notSpecified}\n\n**${t.contact}:**\n${name} (${email})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: sergiy.alonso@gmail.com`,
+                    description: `**${t.objective}:**\n${objective || t.notSpecified}\n\n**${t.contact}:**\n${name} (${email})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: contacto.savaitech@gmail.com`,
                     start: {
                         dateTime: startTimeStr,
                         timeZone: 'Europe/Madrid'
@@ -376,7 +376,8 @@ async function createMeetingFromChat(data, config) {
                     },
                     attendees: [
                         { email: email },
-                        { email: 'sergiy.alonso@gmail.com' }
+                        { email: ((_d = config.calendar) === null || _d === void 0 ? void 0 : _d.owner_email) || 'contacto.savaitech@gmail.com' },
+                        ...(((_e = config.calendar) === null || _e === void 0 ? void 0 : _e.cc_email) ? [{ email: config.calendar.cc_email }] : [])
                     ],
                     conferenceData: {
                         createRequest: {
@@ -398,7 +399,7 @@ async function createMeetingFromChat(data, config) {
                     conferenceDataVersion: 1,
                     sendUpdates: 'all'
                 });
-                meetLink = ((_f = (_e = (_d = calendarResponse.data.conferenceData) === null || _d === void 0 ? void 0 : _d.entryPoints) === null || _e === void 0 ? void 0 : _e.find((ep) => ep.entryPointType === 'video')) === null || _f === void 0 ? void 0 : _f.uri) || undefined;
+                meetLink = ((_h = (_g = (_f = calendarResponse.data.conferenceData) === null || _f === void 0 ? void 0 : _f.entryPoints) === null || _g === void 0 ? void 0 : _g.find((ep) => ep.entryPointType === 'video')) === null || _h === void 0 ? void 0 : _h.uri) || undefined;
                 // Update meeting with calendar info
                 await meetingRef.update({
                     status: 'confirmed',
@@ -422,7 +423,7 @@ async function createMeetingFromChat(data, config) {
 exports.createCalendarEvent = functions
     .region('europe-west1')
     .https.onRequest(async (req, res) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     // CORS
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -459,7 +460,7 @@ exports.createCalendarEvent = functions
         const t = meetingTexts[language] || meetingTexts.es;
         const event = {
             summary: `${t.meetingWith} ${guestName}`,
-            description: `**${t.objective}:**\n${meetingObjective || t.notSpecified}\n\n**${t.contact}:**\n${guestName} (${guestEmail})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: sergiy.alonso@gmail.com`,
+            description: `**${t.objective}:**\n${meetingObjective || t.notSpecified}\n\n**${t.contact}:**\n${guestName} (${guestEmail})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: contacto.savaitech@gmail.com`,
             start: {
                 dateTime: startTime,
                 timeZone: 'Europe/Madrid'
@@ -470,7 +471,8 @@ exports.createCalendarEvent = functions
             },
             attendees: [
                 { email: guestEmail },
-                { email: 'sergiy.alonso@gmail.com' }
+                { email: ((_d = config.calendar) === null || _d === void 0 ? void 0 : _d.owner_email) || 'contacto.savaitech@gmail.com' },
+                ...(((_e = config.calendar) === null || _e === void 0 ? void 0 : _e.cc_email) ? [{ email: config.calendar.cc_email }] : [])
             ],
             conferenceData: {
                 createRequest: {
@@ -494,7 +496,7 @@ exports.createCalendarEvent = functions
             conferenceDataVersion: 1,
             sendUpdates: 'all'
         });
-        const meetLink = ((_f = (_e = (_d = response.data.conferenceData) === null || _d === void 0 ? void 0 : _d.entryPoints) === null || _e === void 0 ? void 0 : _e.find((ep) => ep.entryPointType === 'video')) === null || _f === void 0 ? void 0 : _f.uri) || null;
+        const meetLink = ((_h = (_g = (_f = response.data.conferenceData) === null || _f === void 0 ? void 0 : _f.entryPoints) === null || _g === void 0 ? void 0 : _g.find((ep) => ep.entryPointType === 'video')) === null || _h === void 0 ? void 0 : _h.uri) || null;
         res.status(200).json({
             success: true,
             eventId: response.data.id,
