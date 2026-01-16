@@ -2,118 +2,118 @@ export const es = {
   // ServicesPanel
   services: {
     clientTypes: {
-      startup: 'Startups & MVPs',
+      startup: 'Startups, Pymes & MVPs',
       scale: 'Scale-ups',
-      enterprise: 'Empresas'
+      enterprise: 'Grandes Empresas'
     },
     valueProps: {
       startup: {
-        headline: 'Lanza tu MVP Rápido',
-        subtext: 'De idea a App Store. Desarrollo ágil con flexibilidad para pivotar.'
+        headline: 'MVPs con IA en Tiempo Récord',
+        subtext: 'Calidad de gran consultora a precio competitivo. De idea a App Store en 4-8 semanas.'
       },
       scale: {
-        headline: 'Escala Sin Romperte',
-        subtext: 'Moderniza tu stack y optimiza rendimiento para crecer 10x.'
+        headline: 'Escala tu Tecnología',
+        subtext: 'Arquitecturas robustas y optimización de rendimiento para crecer sin deuda técnica.'
       },
       enterprise: {
-        headline: 'Soluciones Enterprise',
-        subtext: 'Arquitecturas robustas con enfoque security-first e integración.'
+        headline: 'Potencial Enterprise, Agilidad Freelance',
+        subtext: 'Expertise técnico senior para proyectos críticos. Sin la burocracia de las grandes agencias.'
       }
     },
     featured: {
       multiplatform: {
-        title: 'Apps Multiplataforma',
-        subtitle: 'Un Código, Todas las Plataformas',
-        description: 'Publica en Android, iOS, Web y Desktop desde un solo código. Reduce tiempo de desarrollo 60% sin sacrificar rendimiento nativo.',
+        title: 'Desarrollo Apps con IA',
+        subtitle: 'Tecnología de Vanguardia',
+        description: 'Integra IA generativa (GPT-4, Claude) y publica en iOS/Android desde un solo código. Calidad premium a coste eficiente.',
         metric: '60%',
-        metricLabel: 'más rápido al mercado'
+        metricLabel: 'ahorro vs. agencias'
       },
       ai: {
-        title: 'Funciones con IA',
-        subtitle: 'Inteligencia de Nueva Generación',
-        description: 'Integra IA de vanguardia en tus apps. Desde asistentes inteligentes hasta analítica predictiva, haz que tu producto destaque.',
+        title: 'Innovación & IA',
+        subtitle: 'Tu Ventaja Competitiva',
+        description: 'Impulsa tu negocio con soluciones de IA personalizadas. Desde chatbots inteligentes hasta automatización avanzada.',
         metric: '10x',
-        metricLabel: 'más engagement'
+        metricLabel: 'más velocidad'
       }
     },
     items: {
       android: {
         title: 'Android Nativo',
-        description: 'Desarrollo Kotlin-first con Jetpack Compose. Optimizado para cualquier dispositivo.'
+        description: 'Desarrollo Kotlin-first de alto rendimiento. Calidad de código garantizada.'
       },
       flutter: {
-        title: 'Apps Flutter',
-        description: 'Apps multiplataforma elegantes desde un solo código. Publica en iOS y Android rápido.'
+        title: 'Apps Multiplataforma',
+        description: 'Desarrollo ágil en Flutter. Una sola inversión para iOS y Android.'
       },
       migrations: {
-        title: 'Migraciones Tech',
-        description: 'Migra sin fricción desde React Native, Ionic o código legacy a arquitecturas modernas.'
+        title: 'Modernización Tech',
+        description: 'Actualiza sistemas legacy a arquitecturas modernas con IA.'
       },
       leadership: {
         title: 'Liderazgo Técnico',
-        description: 'CTO fraccional, Tech Lead o arquitecto hands-on. Escala tu equipo con guía senior.'
+        description: 'Tu socio tecnológico. Visión estratégica de CTO para tu proyecto.'
       },
       audits: {
-        title: 'Auditorías de Código',
-        description: 'Revisión técnica profunda con insights accionables. Identifica cuellos de botella antes de que duelan.'
+        title: 'Auditoría & Calidad',
+        description: 'Análisis profundo para asegurar escalabilidad y seguridad.'
       },
       performance: {
-        title: 'Optimización',
-        description: 'Optimiza tiempos de carga, reduce crashes y mejora ratings en app stores.'
+        title: 'Rendimiento Máximo',
+        description: 'Optimización de velocidad y experiencia de usuario.'
       },
       mvp: {
-        title: 'Desarrollo MVP',
-        description: 'Valida tu idea rápido. Lanza un MVP production-ready en 4-8 semanas.'
+        title: 'MVPs Rápidos',
+        description: 'Tu producto en el mercado en semanas, no meses. Validación ágil.'
       },
       web: {
-        title: 'Apps Web',
-        description: 'Landing pages modernas y web apps con SvelteKit, React o Next.js. SEO optimizado.'
+        title: 'Webs & Plataformas',
+        description: 'Desarrollo web moderno con SvelteKit/React. SEO y conversión optimizados.'
       },
       automation: {
-        title: 'Automatización Python',
-        description: 'Scripts custom para procesamiento de datos, integraciones API y automatización de workflows.'
+        title: 'Automatización IA',
+        description: 'Workflows inteligentes que ahorran horas de trabajo manual.'
       }
     },
     badges: {
-      ideal: 'Ideal'
+      ideal: 'Recomendado'
     },
     cta: {
-      title: '¿Listo para construir algo grande?',
-      subtitle: 'Hablemos de tu proyecto. Sin compromiso, solo conversación.',
-      button: 'Reservar Llamada'
+      title: '¿Buscas calidad de agencia a mejor precio?',
+      subtitle: 'Hablemos de cómo la IA puede acelerar tu proyecto.',
+      button: 'Consultar Disponibilidad'
     },
     trust: {
-      experience: 'Más de 10 Años de Experiencia',
-      quality: 'Calidad Senior',
-      flexible: 'Engagement Flexible'
+      experience: 'Expertise de Gran Consultora',
+      quality: 'Calidad/Precio Imbatible',
+      flexible: 'Agilidad y Compromiso'
     }
   },
 
   // My Process Section
   myProcess: {
     title: 'Mi Proceso',
-    subtitle: 'Lo que puedes esperar al trabajar conmigo',
+    subtitle: 'Eficiencia y transparencia desde el día 1',
     steps: {
       contact: {
-        title: 'Primera Reunión',
-        description: 'Videollamada de 30-60 min. Me cuentas tu idea, entiendo el contexto y vemos si puedo ayudarte.',
+        title: 'Consulta Estratégica',
+        description: 'Analizamos tu idea y viabilidad técnica-económica. Sin compromiso.',
         icon: 'videocam',
         badge: 'Gratis'
       },
       discovery: {
-        title: 'Profundización',
-        description: 'Segunda sesión donde profundizamos en el problema y exploramos posibles soluciones técnicas.',
+        title: 'Diseño de Solución',
+        description: 'Definimos la arquitectura y stack ideal para tu presupuesto y objetivos.',
         icon: 'psychology',
         badge: 'Gratis'
       },
       scope: {
-        title: 'Propuesta',
-        description: 'Te presento un documento con alcance, entregables, timeline y presupuesto. Todo claro antes de empezar.',
+        title: 'Plan de Acción',
+        description: 'Roadmap claro, tiempos garantizados y presupuesto cerrado.',
         icon: 'description'
       },
       implementation: {
-        title: 'Implementación',
-        description: 'Desarrollo iterativo con demos frecuentes. Comunicación constante hasta la entrega.',
+        title: 'Desarrollo Ágil',
+        description: 'Sprints rápidos con entregas funcionales. Ves tu app crecer semana a semana.',
         icon: 'rocket_launch'
       }
     }
@@ -121,84 +121,84 @@ export const es = {
 
   // How I Work Section
   howIWork: {
-    title: 'Cómo Trabajo',
-    subtitle: 'Filosofía y metodología',
+    title: 'Por qué elegirme',
+    subtitle: 'La alternativa inteligente a las grandes consultoras',
     cards: {
       pragmatic: {
-        title: 'Pragmático',
-        subtitle: 'Resultados > Teoría',
-        description: 'Soluciones que funcionan hoy, no arquitecturas perfectas para mañana. MVP primero, iterar después.',
-        footer: 'Lanzar rápido, aprender más rápido'
+        title: 'Enfoque a Resultados',
+        subtitle: 'Tu éxito es mi éxito',
+        description: 'Me centro en lo que aporta valor a tu negocio. Elimino lo superfluo para maximizar tu ROI.',
+        footer: 'Tecnología al servicio del negocio'
       },
       communication: {
-        title: 'Comunicación Clara',
-        subtitle: 'Sin jerga innecesaria',
-        description: 'Explico el "por qué" técnico en términos de negocio. Updates semanales, demos frecuentes, cero sorpresas.',
-        footer: 'Slack/Meet disponible'
+        title: 'Socio Tecnológico',
+        subtitle: 'Más que un proveedor',
+        description: 'Trato directo, sin intermediarios ni gestores de cuentas. Comunicación fluida y experta.',
+        footer: 'Compromiso total'
       },
       quality: {
-        title: 'Calidad Senior',
-        subtitle: '10+ años de oficio',
-        description: 'Código limpio, tests automatizados, CI/CD desde el día 1. Deuda técnica controlada, no evitada.',
-        footer: 'Production-ready siempre'
+        title: 'Excelencia Técnica',
+        subtitle: 'Código de primer nivel',
+        description: 'La misma calidad de ingeniería que las grandes tecnológicas, aplicada a tu proyecto.',
+        footer: 'Escalabilidad garantizada'
       }
     },
     details: {
-      ide: 'IDE',
-      ideValue: 'IntelliJ + Antigravity',
-      stack: 'Stack favorito',
-      stackValue: 'Kotlin + Firebase + Claude',
-      timezone: 'Zona horaria',
-      timezoneValue: 'CET (Madrid)',
+      ide: 'Herramientas',
+      ideValue: 'Stack Moderno e IA',
+      stack: 'Core Stack',
+      stackValue: 'Kotlin / Flutter / IA',
+      timezone: 'Ubicación',
+      timezoneValue: 'Madrid (Disponible Global)',
       languages: 'Idiomas',
-      languagesValue: 'ES 🇪🇸 / EN 🇬🇧'
+      languagesValue: 'Español / Inglés'
     }
   },
 
   // ProfilePanel
   profile: {
-    role: 'Tech Lead',
-    status: 'DISPONIBLE',
-    bio: '10+ años de experiencia.<br/>Especializado en mobile, multiplataforma e IA.',
+    role: 'Tech Lead & Experto en Apps/IA',
+    status: 'ACEPTANDO PROYECTOS',
+    bio: 'Potencia de agencia, agilidad freelance.<br/>Transformo ideas en software de clase mundial.',
     location: 'Madrid, España',
-    projectsFor: 'Proyectos para',
-    workedAt: 'Trabajé en',
+    projectsFor: 'He desarrollado para',
+    workedAt: 'Experiencia en',
     stats: {
-      years: 'Años',
-      projects: 'Proyectos'
+      years: 'Años Exp.',
+      projects: 'Proyectos Exitosos'
     }
   },
 
   // SchedulingPanel
   scheduling: {
-    title: 'Reservar reunión',
-    selectDay: 'Selecciona un día para ver los horarios disponibles',
-    available: 'Disponible',
+    title: 'Agenda tu Consultoría',
+    selectDay: 'Selecciona fecha para hablar de tu proyecto',
+    available: 'Libre',
     busy: 'Ocupado',
     tooSoon: 'Muy pronto',
     outsideHours: 'Fuera de horario',
-    duration: 'Duración: 1 hora',
+    duration: 'Sesión de 1 hora',
     schedule: 'Horario: 8:00 - 22:00 (Madrid)',
     form: {
       back: 'Volver',
       fullName: 'Nombre completo',
       namePlaceholder: 'Tu nombre',
-      email: 'Email',
-      emailPlaceholder: 'tu@email.com',
-      objective: 'Objetivo de la reunión',
-      objectivePlaceholder: 'Describe brevemente lo que te gustaría discutir...',
-      submit: 'Confirmar reserva',
-      submitting: 'Reservando...'
+      email: 'Email profesional',
+      emailPlaceholder: 'nombre@empresa.com',
+      objective: 'Cuéntame sobre tu proyecto',
+      objectivePlaceholder: '¿Qué quieres construir? ¿Web, App, IA?...',
+      submit: 'Confirmar Reunión',
+      submitting: 'Agendando...'
     },
     success: {
-      title: '¡Reserva confirmada!',
-      message: 'Te hemos enviado un email con los detalles de la reunión.'
+      title: '¡Reunión Confirmada!',
+      message: 'Revisa tu email. Te he enviado los detalles y el enlace de la videollamada.'
     },
     errors: {
-      fillAll: 'Por favor completa todos los campos',
-      invalidEmail: 'Por favor introduce un email válido',
-      connection: 'Error de conexión. Por favor intenta más tarde.',
-      generic: 'Error al crear la reserva. Por favor intenta de nuevo.'
+      fillAll: 'Por favor, completa todos los campos para preparar la reunión',
+      invalidEmail: 'Necesitamos un email válido para enviarte la invitación',
+      connection: 'Error de conexión. Intenta de nuevo en unos segundos.',
+      generic: 'Hubo un problema. Por favor contáctame directamente si persiste.'
     },
     months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
     weekDays: ['L', 'M', 'X', 'J', 'V', 'S', 'D']
