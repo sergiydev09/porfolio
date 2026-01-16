@@ -440,7 +440,7 @@ async function createMeetingFromChat(data: BookingData, config: Record<string, a
         const t = meetingTexts.es;
         const event = {
           summary: `${t.meetingWith} ${name}`,
-          description: `**${t.objective}:**\n${objective || t.notSpecified}\n\n**${t.contact}:**\n${name} (${email})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: sergiy.alonso@gmail.com`,
+          description: `**${t.objective}:**\n${objective || t.notSpecified}\n\n**${t.contact}:**\n${name} (${email})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: contacto.savaitech@gmail.com`,
           start: {
             dateTime: startTimeStr,
             timeZone: 'Europe/Madrid'
@@ -451,7 +451,7 @@ async function createMeetingFromChat(data: BookingData, config: Record<string, a
           },
           attendees: [
             { email: email },
-            { email: 'sergiy.alonso@gmail.com' }
+            { email: config.calendar?.owner_email || 'contacto.savaitech@gmail.com' }
           ],
           conferenceData: {
             createRequest: {
@@ -548,7 +548,7 @@ export const createCalendarEvent = functions
 
       const event = {
         summary: `${t.meetingWith} ${guestName}`,
-        description: `**${t.objective}:**\n${meetingObjective || t.notSpecified}\n\n**${t.contact}:**\n${guestName} (${guestEmail})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: sergiy.alonso@gmail.com`,
+        description: `**${t.objective}:**\n${meetingObjective || t.notSpecified}\n\n**${t.contact}:**\n${guestName} (${guestEmail})\n\n---\n${t.cancelOrModify}\n${t.writeTo}: contacto.savaitech@gmail.com`,
         start: {
           dateTime: startTime,
           timeZone: 'Europe/Madrid'
@@ -559,7 +559,7 @@ export const createCalendarEvent = functions
         },
         attendees: [
           { email: guestEmail },
-          { email: 'sergiy.alonso@gmail.com' }
+          { email: config.calendar?.owner_email || 'contacto.savaitech@gmail.com' }
         ],
         conferenceData: {
           createRequest: {

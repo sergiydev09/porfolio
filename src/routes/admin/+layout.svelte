@@ -4,10 +4,11 @@
 	import { onMount } from 'svelte';
 	import { getFirebaseAuth } from '$lib/firebase/client';
 	import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
+	import { PUBLIC_ADMIN_EMAIL } from '$env/static/public';
 
 	let { children } = $props();
 
-	const ADMIN_EMAIL = 'sergiy.alonso@gmail.com';
+	const ADMIN_EMAIL = PUBLIC_ADMIN_EMAIL;
 
 	let user = $state<User | null>(null);
 	let loading = $state(true);
