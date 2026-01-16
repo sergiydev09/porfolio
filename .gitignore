@@ -39,3 +39,4 @@ coverage/
 hooks/hooks.local.json
 functions/oauth-setup.js
 functions/lib/
+.firebase/

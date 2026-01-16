@@ -318,5 +318,5 @@ MIT
 
 **Sergiy Alonso**
 - Website: https://savaitech.web.app
-- LinkedIn: [sergiy-alonso-villar](https://www.linkedin.com/in/sergiy-alonso-villar-31bb14146)
+- LinkedIn: [Sergiy Alonso Villar](https://www.linkedin.com/in/sergiy-alonso-villar-31bb14146)
 - GitHub: [@sergiydev09](https://github.com/sergiydev09)
