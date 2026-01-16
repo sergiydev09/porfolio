@@ -38,3 +38,4 @@ coverage/
 # Claude Code local overrides (not shared)
 hooks/hooks.local.json
 functions/oauth-setup.js
+functions/lib/
