@@ -2,19 +2,24 @@
 
 ## Documento de Requisitos Funcionales
 
+**Versión:** 2.0
+**Última actualización:** Enero 2026
+
 ---
 
 ## 1. Visión General
 
 Portfolio web profesional para posicionar y vender servicios como:
-- **Programador Senior/Staff**
+- **Tech Lead / Programador Senior**
 - **CTO (Chief Technology Officer)**
-- **CCO (Chief Commercial Officer)**
-- **Chapter Lead / Engineering Manager**
+- **Engineering Manager / Chapter Lead**
+- **Especialista en IA y Automatización**
 
-**Estructura simplificada:**
-- **1 página pública** (`/`) → Landing completa con scroll (servicios, portfolio, contacto)
-- **1 página privada** (`/admin`) → Dashboard admin con KPIs y gestión de leads
+**Estructura:**
+- **Landing pública** (`/`) → Portfolio completo con chatbot IA y sistema de reservas
+- **Panel admin** (`/admin`) → Dashboard con gestión de leads y reuniones
+
+**URL de producción:** https://savaitech.web.app
 
 ---
 
@@ -24,584 +29,415 @@ Portfolio web profesional para posicionar y vender servicios como:
 
 | Capa | Tecnología | Justificación |
 |------|------------|---------------|
-| Framework | **SvelteKit** | SSR/SSG, SEO perfecto, animaciones nativas |
-| Styling | **Tailwind CSS** | Utility-first, rápido desarrollo |
-| Animaciones | **Svelte nativo** | `transition:`, `animate:`, `spring`, `tweened` |
-| Animaciones 3D | **Threlte** (Three.js para Svelte) | Opcional para hero |
-| Backend/Auth | **Supabase** | Auth, PostgreSQL, Realtime subscriptions |
-| Hosting | **Vercel / Netlify** | Edge functions, deploy automático |
-| Analytics | **Supabase + Custom** | KPIs propios sin dependencia de terceros |
+| Framework | **SvelteKit 2+ / Svelte 5** | SSG, SEO perfecto, runes reactivity |
+| Styling | **Tailwind CSS** | Utility-first, desarrollo rápido |
+| Animaciones | **Svelte nativo** | `transition:`, `spring`, `tweened` |
+| Backend | **Firebase** | Firestore, Functions, Hosting, Auth |
+| LLM | **OpenRouter** | Acceso a modelos gratuitos (Gemma, Llama, DeepSeek) |
+| Calendar | **Google Calendar API** | Creación automática de eventos + Google Meet |
+| Package Manager | **Bun** | Ultra-rápido (~4s vs ~30s npm) |
+| Testing | **Vitest** | Unit tests para lógica de booking |
 
 ### 2.2 Arquitectura de Alto Nivel
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                         SVELTEKIT                                 │
-│  ┌────────────────────────┐    ┌──────────────────────────────┐  │
-│  │   / (Landing Page)     │    │   /admin (Dashboard)         │  │
-│  │   ┌──────────────────┐ │    │   ┌────────────────────────┐ │  │
-│  │   │ Hero             │ │    │   │ Auth Guard             │ │  │
-│  │   │ Sobre mí         │ │    │   │ KPIs tiempo real       │ │  │
-│  │   │ Servicios        │ │    │   │ Lista de leads         │ │  │
-│  │   │ Portfolio        │ │    │   │ Gestión de estados     │ │  │
-│  │   │ Contacto         │ │    │   │ Analytics              │ │  │
-│  │   └──────────────────┘ │    │   └────────────────────────┘ │  │
-│  └────────────────────────┘    └──────────────────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                          SUPABASE                                 │
-│  ┌──────────┐  ┌───────────┐  ┌───────────┐  ┌────────────────┐  │
-│  │   Auth   │  │  Database │  │  Realtime │  │    Storage     │  │
-│  │  (Admin) │  │ PostgreSQL│  │   Subs    │  │    (Media)     │  │
-│  └──────────┘  └───────────┘  └───────────┘  └────────────────┘  │
-└──────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                              SVELTEKIT                                    │
+│  ┌─────────────────────────────┐    ┌──────────────────────────────────┐ │
+│  │   / (Landing Page)          │    │   /admin (Dashboard)             │ │
+│  │   ┌───────────────────────┐ │    │   ┌────────────────────────────┐ │ │
+│  │   │ Hero + Profile        │ │    │   │ Auth Guard (Supabase)      │ │ │
+│  │   │ Services (tabs)       │ │    │   │ /admin/leads               │ │ │
+│  │   │ Process + Philosophy  │ │    │   │ /admin/meetings            │ │ │
+│  │   │ ChatBot (IA)          │ │    │   │ /admin/login               │ │ │
+│  │   │ SchedulingPanel       │ │    │   └────────────────────────────┘ │ │
+│  │   │ Tech Marquee          │ │    └──────────────────────────────────┘ │
+│  │   └───────────────────────┘ │                                         │
+│  └─────────────────────────────┘                                         │
+└──────────────────────────────────────────────────────────────────────────┘
+                                    │
+          ┌─────────────────────────┼─────────────────────────┐
+          ▼                         ▼                         ▼
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────────────┐
+│    FIREBASE      │    │   OPENROUTER     │    │   GOOGLE CALENDAR API    │
+│  ┌────────────┐  │    │                  │    │                          │
+│  │ Firestore  │  │    │  Gemma 3 27B     │    │  Crear eventos           │
+│  │  - meets   │  │    │  Llama 3.3 70B   │    │  Google Meet links       │
+│  │  - leads   │  │    │  DeepSeek R1     │    │  Invitaciones email      │
+│  ├────────────┤  │    │  Nemotron        │    │                          │
+│  │ Functions  │  │    └──────────────────┘    └──────────────────────────┘
+│  │  - chat    │  │
+│  │  - calendar│  │
+│  ├────────────┤  │
+│  │ Hosting    │  │
+│  └────────────┘  │
+└──────────────────┘
 ```
 
 ---
 
-## 3. Zona Pública (Landing Page)
+## 3. Funcionalidades Implementadas
 
-### 3.1 Hero Section
+### 3.1 Chatbot con IA ✅
 
-**Contenido:**
-- Nombre y título profesional con animación de typing o morphing
-- Tagline impactante
-- CTA principal: "Hablemos" / "Ver servicios"
-- Elemento visual diferenciador (partículas 3D, gradient mesh animado, o avatar 3D)
+**Descripción:**
+Asistente virtual que responde preguntas sobre Sergiy y sus servicios, y permite agendar reuniones de forma conversacional.
 
-**Animaciones:**
-- Entrada escalonada de elementos (stagger)
-- Parallax en scroll
-- Rotación de roles (CTO, Tech Lead, Engineering Manager...)
+**Características:**
+- Integración con OpenRouter (modelos gratuitos)
+- Selector de modelo: Gemma 3 27B, Llama 3.3 70B, DeepSeek R1, Nemotron
+- System prompt con contexto completo de servicios
+- Disponibilidad en tiempo real inyectada en el prompt
+- Booking conversacional guiado paso a paso
 
-### 3.2 Sobre Mí
-
-**Contenido:**
-- Historia profesional resumida
-- Valores y forma de trabajo
-- Foto profesional con efecto hover
-- Stats animados (años experiencia, proyectos, empresas)
-
-**Animaciones:**
-- Reveal on scroll (IntersectionObserver)
-- Counter animation para stats con `tweened()`
-- Timeline interactivo de carrera
-
-### 3.3 Servicios
-
-**Estructura de cada servicio:**
+**Modelos disponibles:**
 ```typescript
-interface Service {
+const ALLOWED_MODELS = [
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'deepseek/deepseek-r1-0528:free',
+  'google/gemma-3-27b-it:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free'
+];
+```
+
+**Flujo de booking via chat:**
+1. Usuario expresa intención de agendar
+2. Bot pregunta: nombre → email → objetivo → fecha → hora
+3. Disponibilidad verificada contra Firestore en tiempo real
+4. Marcador `[BOOKING_DATA]{...}[/BOOKING_DATA]` generado por el LLM
+5. Backend procesa, crea evento en Google Calendar
+6. Usuario recibe invitación con link de Google Meet
+
+### 3.2 Sistema de Reserva de Reuniones ✅
+
+**Calendario Visual (SchedulingPanel):**
+- Calendario mensual interactivo
+- Slots de 15 minutos (8:00 - 21:00 hora Madrid)
+- Estados visuales: Disponible (verde), Ocupado (rojo), Fuera de horario (gris)
+- Actualización en tiempo real con Firestore `onSnapshot`
+- Bloqueo de 7 slots por reunión (evita overlaps de 1 hora)
+
+**Validaciones:**
+- Fechas pasadas bloqueadas
+- Horario laboral: 8:00 - 21:00 (última reunión a las 20:00)
+- Detección de conflictos con reuniones existentes
+- Conversión correcta UTC ↔ Madrid (CET/CEST)
+
+**Datos de reunión:**
+```typescript
+interface Meet {
   id: string;
-  title: string;           // "CTO as a Service"
-  subtitle: string;        // "Liderazgo técnico para tu startup"
-  description: string;
-  icon: string;
-  benefits: string[];
-  targetAudience: string;  // "Startups en fase seed/series A"
-  deliverables: string[];
-  pricing?: {
-    type: 'hourly' | 'monthly' | 'project';
-    range?: string;        // "Desde 150€/h"
-  };
+  guest_name: string;
+  guest_email: string;
+  meeting_objective: string;
+  start_time: Timestamp;
+  end_time: Timestamp;
+  timezone: 'Europe/Madrid';
+  meet_link: string | null;
+  calendar_event_id: string | null;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  source: 'chatbot' | 'calendar';
+  created_at: Timestamp;
 }
 ```
 
-**Servicios a mostrar:**
-1. **CTO as a Service** - Liderazgo técnico externo
-2. **Consultoría Técnica** - Auditorías, arquitectura, code reviews
-3. **Chapter Lead / Engineering Manager** - Gestión de equipos
-4. **Desarrollo Senior** - Implementación de proyectos complejos
-5. **Mentoría Técnica** - 1:1 para developers
-
-**Animaciones:**
-- Cards con hover 3D (tilt effect)
-- Stagger reveal al hacer scroll
-- Iconos animados
-
-### 3.4 Portfolio / Casos de Éxito
-
-**Estructura:**
-```typescript
-interface Project {
-  id: string;
-  title: string;
-  company: string;
-  role: string;
-  period: string;
-  thumbnail: string;
-  technologies: string[];
-  challenge: string;
-  solution: string;
-  results: {
-    metric: string;
-    value: string;
-    improvement?: string;
-  }[];
-  testimonial?: {
-    quote: string;
-    author: string;
-    position: string;
-    avatar?: string;
-  };
-  isPublic: boolean;
-  featured: boolean;
-}
-```
-
-**Animaciones:**
-- Grid con animación de entrada escalonada
-- Hover effects en cards
-- Resultados con métricas destacadas
-
-### 3.5 Contacto
-
-**Formulario:**
-```typescript
-interface ContactForm {
-  name: string;
-  email: string;
-  company?: string;
-  serviceInterest: ServiceType[];
-  budget?: BudgetRange;
-  timeline?: string;
-  message: string;
-  howDidYouFind?: string;
-}
-
-type BudgetRange =
-  | 'under_5k'
-  | '5k_15k'
-  | '15k_50k'
-  | 'over_50k'
-  | 'ongoing_retainer';
-```
+### 3.3 Integración Google Calendar ✅
 
 **Funcionalidad:**
-- Validación en tiempo real
-- Guardado en Supabase
-- Email de confirmación automático
-- Notificación push/email al admin
-- Protección anti-spam (honeypot + rate limiting)
+- Creación automática de eventos en calendario de Sergiy
+- Generación de link de Google Meet
+- Invitación automática al email del guest
+- Reminders: email 60min antes, popup 30min antes
 
-**Animaciones:**
-- Input focus animations
-- Success state con check animado
-- Shake en errores
+**Configuración OAuth:**
+```bash
+firebase functions:config:set \
+  oauth.client_id="..." \
+  oauth.client_secret="..." \
+  oauth.refresh_token="..."
+```
+
+### 3.4 Landing Page ✅
+
+**Secciones implementadas:**
+
+| Sección | Componente | Descripción |
+|---------|------------|-------------|
+| Hero | `HeroSection.svelte` | Foto, nombre, rol animado, badges de empresas |
+| Servicios | `ServicesPanel.svelte` | Tabs por audiencia (Startups, Scale-ups, Enterprise) |
+| Proceso | `ProcessSection.svelte` | Timeline de 4 pasos con badges "GRATIS" |
+| Filosofía | `PhilosophySection.svelte` | Valores: Pragmático, Comunicación, Calidad |
+| Chat | `ChatBot.svelte` | Chatbot IA con selector de modelo |
+| Calendario | `SchedulingPanel.svelte` | Reserva visual de reuniones |
+| Footer | `TechMarquee.svelte` | Marquee infinito con logos de tecnologías |
+
+**i18n (Multiidioma):**
+- Español (ES) y English (EN)
+- Toggle en la UI
+- Textos centralizados por componente
+
+### 3.5 Panel de Administración ✅
+
+**Rutas:**
+- `/admin/login` - Autenticación con Supabase
+- `/admin/leads` - Gestión de leads del formulario de contacto
+- `/admin/meetings` - Gestión de reuniones agendadas
+
+**Autenticación:**
+- Supabase Auth con email/password
+- Protección de rutas con layout guard
+- Solo email autorizado puede acceder
 
 ---
 
-## 4. Zona Privada (Admin Dashboard)
+## 4. Base de Datos (Firestore)
 
-### 4.1 Autenticación
+### 4.1 Colecciones
 
-- Login solo para ti (email único autorizado)
-- Supabase Auth con Magic Link o OAuth (Google/GitHub)
-- Middleware de protección de rutas
-- Session management
-
-### 4.2 Dashboard Principal
-
-**KPIs en tiempo real:**
 ```typescript
-interface DashboardKPIs {
-  // Tráfico
-  visitorsToday: number;
-  visitorsThisWeek: number;
-  visitorsThisMonth: number;
-  uniqueVisitors: number;
-
-  // Engagement
-  avgTimeOnSite: number;
-  bounceRate: number;
-  mostViewedPages: PageView[];
-
-  // Conversión
-  contactRequests: number;
-  conversionRate: number;
-  leadsByService: Record<ServiceType, number>;
-
-  // Tendencias
-  visitorsTrend: TrendData[];
-  leadsTrend: TrendData[];
+// Colección: meets
+{
+  guest_name: string;
+  guest_email: string;
+  meeting_objective: string;
+  start_time: Timestamp;
+  end_time: Timestamp;
+  timezone: 'Europe/Madrid';
+  meet_link: string | null;
+  calendar_event_id: string | null;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  cancelled_at: Timestamp | null;
+  cancellation_reason: string | null;
+  admin_notes: string | null;
+  source: 'chatbot' | 'calendar';
+  created_at: Timestamp;
+  updated_at: Timestamp;
 }
-```
 
-**Visualización:**
-- Cards con números grandes y tendencias (↑↓)
-- Gráficos de línea para evolución temporal
-- Gráficos de barras para comparativas
-
-### 4.3 Gestión de Leads/Contactos
-
-**Lista de contactos:**
-```typescript
-interface Lead {
-  id: string;
-  createdAt: Date;
-
-  // Datos del formulario
+// Colección: leads
+{
   name: string;
   email: string;
-  company?: string;
-  servicesInterested: ServiceType[];
-  budget?: BudgetRange;
+  company: string | null;
   message: string;
-
-  // Tracking
-  source?: string;          // UTM source
-  landingPage: string;
-  device: string;
-  country?: string;
-
-  // Gestión
-  status: LeadStatus;
-  notes: string;
-  followUpDate?: Date;
-  assignedValue?: number;   // Valor estimado del deal
+  services_interested: string[];
+  source: string | null;
+  status: 'new' | 'contacted' | 'converted' | 'spam';
+  created_at: Timestamp;
 }
-
-type LeadStatus =
-  | 'new'           // Nuevo, sin revisar
-  | 'contacted'     // Ya contactado
-  | 'in_progress'   // En negociación
-  | 'won'           // Convertido a cliente
-  | 'lost'          // No convertido
-  | 'spam';         // Spam/no válido
 ```
 
-**Funcionalidades:**
-- Tabla con filtros y búsqueda
-- Cambio de estado con dropdown
-- Vista detalle de cada lead
-- Añadir notas internas
-- Marcar follow-up con reminder
-- Exportar a CSV
+### 4.2 Índices
 
-**Realtime:**
-- Notificación instantánea de nuevo lead
-- Badge de "nuevos sin leer"
-
----
-
-## 5. Base de Datos (Supabase)
-
-### 5.1 Esquema de Tablas
-
-```sql
--- Leads/Contactos
-CREATE TABLE leads (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  company TEXT,
-  services_interested TEXT[],
-  budget TEXT,
-  timeline TEXT,
-  message TEXT NOT NULL,
-  how_found TEXT,
-
-  -- Tracking
-  source TEXT,
-  utm_campaign TEXT,
-  utm_medium TEXT,
-  landing_page TEXT,
-  user_agent TEXT,
-  ip_country TEXT,
-
-  -- Gestión
-  status TEXT DEFAULT 'new',
-  notes TEXT,
-  follow_up_date DATE,
-  estimated_value DECIMAL,
-
-  -- Soft delete
-  archived BOOLEAN DEFAULT FALSE
-);
-
--- Analytics de páginas
-CREATE TABLE page_views (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-
-  page_path TEXT NOT NULL,
-  session_id TEXT,
-  visitor_id TEXT,
-  referrer TEXT,
-  user_agent TEXT,
-  screen_size TEXT,
-  country TEXT,
-  duration_seconds INTEGER
-);
-
--- Proyectos del portfolio
-CREATE TABLE projects (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-
-  title TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  company TEXT,
-  role TEXT,
-  period TEXT,
-  thumbnail_url TEXT,
-  technologies TEXT[],
-  challenge TEXT,
-  solution TEXT,
-  results JSONB,
-  testimonial JSONB,
-
-  is_public BOOLEAN DEFAULT TRUE,
-  is_featured BOOLEAN DEFAULT FALSE,
-  sort_order INTEGER DEFAULT 0
-);
-
--- Servicios
-CREATE TABLE services (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-
-  title TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  subtitle TEXT,
-  description TEXT,
-  icon TEXT,
-  benefits TEXT[],
-  target_audience TEXT,
-  deliverables TEXT[],
-  pricing_type TEXT,
-  pricing_range TEXT,
-
-  is_active BOOLEAN DEFAULT TRUE,
-  sort_order INTEGER DEFAULT 0
-);
 ```
-
-### 5.2 Row Level Security (RLS)
-
-```sql
--- Leads: insert público, todo lo demás solo admin
-ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow insert for anyone" ON leads
-  FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Allow all for admin" ON leads
-  FOR ALL USING (auth.jwt() ->> 'email' = 'tu-email@dominio.com');
-```
-
-### 5.3 Realtime Subscriptions
-
-```svelte
-<!-- En +page.svelte del admin -->
-<script>
-  import { supabase } from '$lib/supabase';
-  import { onMount, onDestroy } from 'svelte';
-  import { leads } from '$lib/stores/leads';
-
-  let channel;
-
-  onMount(() => {
-    channel = supabase
-      .channel('leads')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'leads' },
-        (payload) => {
-          leads.add(payload.new);
-          showNotification('Nuevo lead!', payload.new.name);
-        }
-      )
-      .subscribe();
-  });
-
-  onDestroy(() => channel?.unsubscribe());
-</script>
+meets: start_time ASC (para queries por rango de fecha)
+leads: created_at DESC (para listar recientes)
 ```
 
 ---
 
-## 6. Animaciones Detalladas (Svelte Nativo)
+## 5. Firebase Functions
 
-### 6.1 Micro-interacciones
+### 5.1 Endpoints
 
-| Elemento | Animación | Implementación |
-|----------|-----------|----------------|
-| Botones | Scale + color en hover | `transition:scale` + CSS |
-| Links | Underline animated | CSS |
-| Cards | Tilt 3D en hover | `use:tilt` action |
-| Inputs | Border glow en focus | CSS + `transition:` |
-| Switches | Spring physics | `spring()` store |
-| Tooltips | Fade + scale | `transition:fade\|scale` |
+| Función | Método | Descripción |
+|---------|--------|-------------|
+| `chat` | POST | Procesa mensajes del chatbot, detecta booking |
+| `createCalendarEvent` | POST | Crea evento en Google Calendar |
 
-```svelte
-<!-- Ejemplo: Botón con spring -->
-<script>
-  import { spring } from 'svelte/motion';
-  const scale = spring(1, { stiffness: 0.3, damping: 0.6 });
-</script>
+### 5.2 Lógica de Chat
 
-<button
-  on:mouseenter={() => scale.set(1.05)}
-  on:mouseleave={() => scale.set(1)}
-  style="transform: scale({$scale})"
->
-  Hover me
-</button>
+```typescript
+// Flujo simplificado
+1. Recibir mensajes del usuario
+2. Fetch disponibilidad próximos 14 días
+3. Inyectar disponibilidad en system prompt
+4. Llamar a OpenRouter con modelo seleccionado
+5. Detectar marcador [BOOKING_DATA]...[/BOOKING_DATA]
+6. Si existe: crear reunión en Firestore + Google Calendar
+7. Retornar respuesta limpia (sin marcadores)
 ```
 
-### 6.2 Scroll Animations
+### 5.3 Booking Utils
 
-| Sección | Efecto |
-|---------|--------|
-| Hero | Parallax layers, fade out on scroll |
-| Stats | Counter animation al entrar en viewport |
-| Servicios | Stagger reveal de cards |
-| Portfolio | Grid con entrada escalonada |
-| Testimonios | Slide carousel |
+Funciones de utilidad para validación de reservas:
 
-### 6.3 Page Transitions
-
-```svelte
-<!-- +layout.svelte -->
-<script>
-  import { fly } from 'svelte/transition';
-  import { page } from '$app/stores';
-</script>
-
-{#key $page.url.pathname}
-  <main in:fly={{ y: 20, duration: 300 }} out:fly={{ y: -20, duration: 200 }}>
-    <slot />
-  </main>
-{/key}
+```typescript
+generateTimeSlots()      // Genera slots 8:00-20:45 cada 15min
+getMadridOffset(date)    // Retorna +1 (CET) o +2 (CEST)
+checkMeetingOverlap()    // Detecta conflictos
+getBlockedSlots()        // Calcula 7 slots bloqueados por reunión
+getAvailableSlots()      // Retorna slots libres
+isValidTimeSlot()        // Valida formato HH:MM
+validateBookingTime()    // Validación completa
+isValidEmail()           // Regex de email
 ```
 
-### 6.4 Efectos Especiales (Hero)
-
-**Opción A: Gradient Mesh Animado**
-- Fondo con gradientes que se mueven suavemente
-- CSS puro + `tweened()` stores
-- Bajo consumo de recursos
-
-**Opción B: Partículas Interactivas**
-- Partículas que reaccionan al cursor
-- **Threlte** (Three.js para Svelte) o svelte-particles
-
-**Opción C: Blob Morphing**
-- Formas orgánicas que mutan
-- SVG animado con `tweened()` + d3-interpolate
+**Tests:** `functions/src/booking-utils.test.ts` con Vitest
 
 ---
 
-## 7. SEO y Performance
+## 6. SEO y Performance
 
-### 7.1 SEO
-
-```svelte
-<!-- +page.svelte -->
-<svelte:head>
-  <title>Sergiy Alonso | CTO & Tech Leader</title>
-  <meta name="description" content="..." />
-  <meta property="og:title" content="..." />
-  <meta property="og:image" content="..." />
-  <link rel="canonical" href="https://sergiyalonso.com" />
-</svelte:head>
-```
+### 6.1 SEO Implementado
 
 - Meta tags dinámicos con `<svelte:head>`
 - Open Graph para redes sociales
-- Schema.org markup (Person, Service, Organization)
-- Sitemap.xml
-- robots.txt en `/static/`
+- Schema.org markup (Person, LocalBusiness)
+- `sitemap.xml` generado estáticamente
+- `robots.txt` configurado
+- Canonical URLs
 
-### 7.2 Performance
+### 6.2 Performance
 
-- Imágenes optimizadas con `@sveltejs/enhanced-img` o vite-imagetools
-- Font optimization con `@fontsource` o preload
-- Code splitting automático (SvelteKit lo hace por defecto)
-- Prerender de página principal: `export const prerender = true`
-- Core Web Vitals excelentes (Svelte compila a JS mínimo)
-
----
-
-## 8. Fases de Desarrollo
-
-### Fase 1: MVP (Core) ✅ COMPLETADO
-- [x] Setup proyecto SvelteKit + Tailwind + Supabase
-- [x] Landing con hero animado
-- [x] Sección servicios
-- [x] Formulario de contacto funcional
-- [x] Base de datos y leads (migrations)
-- [x] Admin: dashboard con KPIs y lista de leads
-
-### Fase 2: Portfolio & Polish
-- [ ] Conectar Supabase (crear proyecto, ejecutar migrations, añadir .env)
-- [ ] Sección portfolio con proyectos reales
-- [ ] Animaciones avanzadas (scroll, stagger, springs)
-- [ ] Dashboard KPIs completo con gráficos
-- [ ] Analytics propios
-- [ ] Realtime notifications
-
-### Fase 3: Extras
-- [ ] Auth para admin con Supabase
-- [ ] Blog con mdsvex (MDX para Svelte)
-- [ ] Notificaciones push
-- [ ] Multi-idioma (ES/EN)
+- Static Site Generation (SSG) con `adapter-static`
+- Imágenes optimizadas
+- Code splitting automático
+- Prerender de todas las páginas públicas
+- Tailwind CSS purge en producción
 
 ---
 
-## 9. Estructura de Carpetas
+## 7. Estructura de Carpetas
 
 ```
 sergiyalonso/
 ├── src/
 │   ├── routes/
-│   │   ├── +page.svelte          # Landing pública
-│   │   ├── +layout.svelte        # Layout global
-│   │   ├── admin/+page.svelte    # Dashboard admin
-│   │   └── api/contact/+server.ts
+│   │   ├── +page.svelte              # Landing pública
+│   │   ├── +layout.svelte            # Layout global
+│   │   ├── admin/
+│   │   │   ├── +layout.svelte        # Auth guard
+│   │   │   ├── +page.svelte          # Redirect
+│   │   │   ├── login/+page.svelte    # Login
+│   │   │   ├── leads/+page.svelte    # Gestión leads
+│   │   │   └── meetings/+page.svelte # Gestión reuniones
+│   │   └── api/
+│   │       └── contact/+server.ts    # Formulario contacto
 │   ├── lib/
 │   │   ├── components/
-│   │   │   ├── sections/         # Hero, About, Services, Portfolio, Contact, Footer
-│   │   │   ├── ui/               # Nav, Button, Card, Input...
-│   │   │   └── admin/            # KPICard, LeadsTable...
-│   │   ├── supabase.ts           # Cliente Supabase
-│   │   ├── stores/               # Svelte stores
-│   │   ├── types/database.ts     # Tipos TypeScript para DB
-│   │   └── utils/
-│   └── app.css                   # Tailwind + estilos globales
+│   │   │   ├── sections/             # Hero, Services, ChatBot, Scheduling...
+│   │   │   └── ui/                   # Button, Card, Input, TechMarquee...
+│   │   ├── firebase/
+│   │   │   └── client.ts             # Cliente Firebase
+│   │   ├── stores/                   # Svelte stores
+│   │   └── types/
+│   │       └── database.ts           # Tipos TypeScript
+│   └── app.css                       # Tailwind + estilos
+├── functions/
+│   ├── src/
+│   │   ├── index.ts                  # Firebase Functions (chat, calendar)
+│   │   ├── booking-utils.ts          # Utilidades de booking
+│   │   └── booking-utils.test.ts     # Tests
+│   ├── package.json
+│   └── tsconfig.json
 ├── static/
-│   └── images/
-├── supabase/
-│   └── migrations/               # SQL para crear tablas
-├── svelte.config.js
-├── tailwind.config.js
+│   ├── images/
+│   ├── sitemap.xml
+│   └── robots.txt
+├── .claude/
+│   ├── commands/commit.md            # /commit skill
+│   ├── agents/                       # Agentes especializados
+│   └── skills/                       # Skills personalizados
+├── firebase.json                     # Config Firebase Hosting
+├── firestore.rules                   # Reglas de seguridad
+├── vite.config.ts                    # Proxy para dev
 └── package.json
 ```
 
 ---
 
-## 10. Comandos
+## 8. Comandos
 
 ```bash
 # Desarrollo
-npm run dev          # Servidor en localhost:5173
+bun run dev              # Servidor en localhost:5173 (proxy a Functions)
+bun run build            # Build para producción
+bun run preview          # Preview del build
 
-# Build
-npm run build        # Compilar para producción
-npm run preview      # Previsualizar build
+# Firebase
+firebase deploy --only hosting    # Deploy solo hosting
+firebase deploy --only functions  # Deploy solo functions
+firebase deploy                   # Deploy todo
+
+# Tests
+cd functions && bun run test      # Tests de booking-utils
 
 # Calidad
-npm run check        # Type check
-npm run lint         # ESLint
-npm run format       # Prettier
+bun run check            # Type check
+bun run format           # Prettier
 ```
 
 ---
 
-*Documento creado: Enero 2026*
-*Última actualización: Enero 2026*
+## 9. Variables de Entorno
+
+### Frontend (`.env`)
+```bash
+PUBLIC_FIREBASE_API_KEY=...
+PUBLIC_FIREBASE_AUTH_DOMAIN=...
+PUBLIC_FIREBASE_PROJECT_ID=savaitech
+PUBLIC_FIREBASE_STORAGE_BUCKET=...
+PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+PUBLIC_FIREBASE_APP_ID=...
+
+# Supabase (para admin auth)
+PUBLIC_SUPABASE_URL=...
+PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+### Firebase Functions Config
+```bash
+firebase functions:config:set \
+  openrouter.api_key="sk-or-v1-..." \
+  oauth.client_id="..." \
+  oauth.client_secret="..." \
+  oauth.refresh_token="..."
+```
+
+---
+
+## 10. Roadmap
+
+### Completado ✅
+- [x] Landing con hero, servicios, proceso, filosofía
+- [x] Chatbot con IA (OpenRouter)
+- [x] Sistema de reserva de reuniones
+- [x] Calendario visual con slots de 15 min
+- [x] Integración Google Calendar + Meet
+- [x] Realtime updates con Firestore
+- [x] Panel admin con auth
+- [x] i18n (ES/EN)
+- [x] SEO completo
+- [x] Deploy a producción
+
+### Pendiente 📋
+- [ ] Analytics propios (page views, conversiones)
+- [ ] Notificaciones push de nuevos leads
+- [ ] Blog con mdsvex
+- [ ] Portfolio de proyectos detallado
+- [ ] Rate limiting en chatbot
+- [ ] Fallback a otro proveedor LLM si OpenRouter falla
+
+---
+
+## 11. Límites y Consideraciones
+
+### OpenRouter (Plan Gratuito)
+- **50 requests/día** para modelos gratuitos
+- Reset diario a las 00:00 UTC
+- Solución: Añadir créditos ($10 = 1000 req/día) o fallback
+
+### Google Calendar API
+- Requiere OAuth refresh token
+- Límite: 1M queries/día (más que suficiente)
+
+### Firebase (Plan Spark/Blaze)
+- Firestore: 50K lecturas/día gratis
+- Functions: 2M invocaciones/mes gratis
+- Hosting: 10GB/mes gratis
+
+---
+
+*Documento actualizado: Enero 2026*
+*Versión del proyecto: 0.2.1*
