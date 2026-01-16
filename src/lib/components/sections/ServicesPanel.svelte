@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getTranslations } from '$lib/i18n/index.svelte';
   import LanguageSwitcher from '$components/ui/LanguageSwitcher.svelte';
+  import ChatBot from '$components/sections/ChatBot.svelte';
 
   // Get translations reactively
   let i18n = $derived(getTranslations());
@@ -381,19 +382,8 @@
       </div>
     </div>
 
-    <!-- CTA Section -->
-    <div class="mt-8 p-6 rounded-xl bg-gradient-to-r from-dark-700/50 to-dark-800/50 border border-dark-600">
-      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-        <div>
-          <h3 class="text-lg font-bold text-white mb-1">{i18n.services.cta.title}</h3>
-          <p class="text-dark-400 text-sm">{i18n.services.cta.subtitle}</p>
-        </div>
-        <button class="shrink-0 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-primary-500/30 flex items-center gap-2 group">
-          <span>{i18n.services.cta.button}</span>
-          <span class="material-icons-round text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-        </button>
-      </div>
-    </div>
+    <!-- AI ChatBot Section -->
+    <ChatBot />
 
     <!-- Trust indicators -->
     <div class="mt-6 flex flex-wrap items-center justify-center gap-6 text-dark-500 text-xs">

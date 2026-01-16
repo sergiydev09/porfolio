@@ -11,6 +11,10 @@ dist/
 .env.*
 !.env.example
 
+# Service Account Keys (sensitive!)
+*-service-account.json
+*.json.key
+
 # IDE
 .vscode/*
 !.vscode/extensions.json
@@ -33,3 +37,4 @@ coverage/
 
 # Claude Code local overrides (not shared)
 hooks/hooks.local.json
+functions/oauth-setup.js

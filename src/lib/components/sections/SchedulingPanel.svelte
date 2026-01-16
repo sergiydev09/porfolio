@@ -1,19 +1,20 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { getFirebaseDb } from '$lib/firebase/client';
 	import { COLLECTIONS } from '$lib/firebase/collections';
 	import {
 		collection,
 		query,
 		where,
-		getDocs,
+		onSnapshot,
 		addDoc,
 		Timestamp,
-		serverTimestamp
+		serverTimestamp,
+		type Unsubscribe
 	} from 'firebase/firestore';
 	import type { Meet } from '$lib/types/firestore';
-	import { getTranslations } from '$lib/i18n/index.svelte';
+	import { getTranslations, getLanguage } from '$lib/i18n/index.svelte';
 
 	let i18n = $derived(getTranslations());
 
@@ -38,6 +39,7 @@
 	// Meetings data
 	let existingMeetings = $state<Meet[]>([]);
 	let loadingMeetings = $state(false);
+	let meetingsUnsubscribe: Unsubscribe | null = null;
 
 	// Reference to time slots container for scrolling
 	let timeSlotsContainer = $state<HTMLDivElement | null>(null);
@@ -78,7 +80,7 @@
 				    checkDate.getFullYear() !== currentDate.getFullYear()) {
 					currentDate = new Date(checkDate.getFullYear(), checkDate.getMonth(), 1);
 				}
-				await loadMeetingsForDate(checkDate);
+				loadMeetingsForDate(checkDate);
 				// Scroll to first available slot after a small delay for DOM to update
 				setTimeout(() => scrollToFirstAvailableSlot(), 150);
 				return;
@@ -87,7 +89,7 @@
 
 		// Fallback to today if no available day found
 		selectedDate = today;
-		await loadMeetingsForDate(today);
+		loadMeetingsForDate(today);
 	}
 
 	function checkDayHasAvailableSlots(date: Date): boolean {
@@ -178,18 +180,22 @@
 		return slotStart < minBookingTime;
 	}
 
-	// Check if a slot is during existing meeting
+	// Check if a slot would create a meeting that overlaps with existing ones
+	// A slot at time T creates a meeting [T, T+60min]
+	// It overlaps with existing meeting [M, M+60min] if: T < M+60 AND T+60 > M
 	function isSlotBusy(time: string): boolean {
 		if (!selectedDate) return false;
 
 		const [hours, minutes] = time.split(':').map(Number);
 		const slotStart = new Date(selectedDate);
 		slotStart.setHours(hours, minutes, 0, 0);
+		const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
 
 		return existingMeetings.some((meeting) => {
 			const meetingStart = meeting.start_time.toDate();
 			const meetingEnd = meeting.end_time.toDate();
-			return slotStart >= meetingStart && slotStart < meetingEnd;
+			// Check for overlap: new meeting starts before existing ends AND new meeting ends after existing starts
+			return slotStart < meetingEnd && slotEnd > meetingStart;
 		});
 	}
 
@@ -217,8 +223,14 @@
 		return true;
 	}
 
-	// Load meetings for selected date
-	async function loadMeetingsForDate(date: Date) {
+	// Load meetings for selected date with real-time updates
+	function loadMeetingsForDate(date: Date) {
+		// Unsubscribe from previous listener
+		if (meetingsUnsubscribe) {
+			meetingsUnsubscribe();
+			meetingsUnsubscribe = null;
+		}
+
 		loadingMeetings = true;
 		const db = getFirebaseDb();
 
@@ -233,25 +245,36 @@
 		const endOfDay = new Date(date);
 		endOfDay.setHours(23, 59, 59, 999);
 
-		try {
-			const meetsQuery = query(
-				collection(db, COLLECTIONS.MEETS),
-				where('start_time', '>=', Timestamp.fromDate(startOfDay)),
-				where('start_time', '<=', Timestamp.fromDate(endOfDay))
-			);
+		const meetsQuery = query(
+			collection(db, COLLECTIONS.MEETS),
+			where('start_time', '>=', Timestamp.fromDate(startOfDay)),
+			where('start_time', '<=', Timestamp.fromDate(endOfDay))
+		);
 
-			const snapshot = await getDocs(meetsQuery);
-			existingMeetings = snapshot.docs
-				.map((doc) => ({ id: doc.id, ...doc.data() }) as Meet)
-				.filter((m) => m.status === 'pending' || m.status === 'confirmed');
-		} catch (error) {
-			console.error('Error loading meetings:', error);
-		}
-
-		loadingMeetings = false;
+		// Subscribe to real-time updates
+		meetingsUnsubscribe = onSnapshot(
+			meetsQuery,
+			(snapshot) => {
+				existingMeetings = snapshot.docs
+					.map((doc) => ({ id: doc.id, ...doc.data() }) as Meet)
+					.filter((m) => m.status === 'pending' || m.status === 'confirmed');
+				loadingMeetings = false;
+			},
+			(error) => {
+				console.error('Error loading meetings:', error);
+				loadingMeetings = false;
+			}
+		);
 	}
 
-	async function selectDay(dayData: { day: number; isCurrentMonth: boolean; date: Date }) {
+	// Cleanup subscription on destroy
+	onDestroy(() => {
+		if (meetingsUnsubscribe) {
+			meetingsUnsubscribe();
+		}
+	});
+
+	function selectDay(dayData: { day: number; isCurrentMonth: boolean; date: Date }) {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 
@@ -260,7 +283,7 @@
 		selectedDate = dayData.date;
 		selectedTime = null;
 		showBookingForm = false;
-		await loadMeetingsForDate(dayData.date);
+		loadMeetingsForDate(dayData.date);
 		// Scroll to first available slot
 		setTimeout(() => scrollToFirstAvailableSlot(), 100);
 	}
@@ -312,14 +335,6 @@
 		);
 	}
 
-	// Generate a simple Meet-like link (placeholder)
-	function generateMeetLink(): string {
-		const chars = 'abcdefghijklmnopqrstuvwxyz';
-		const segment = () =>
-			Array.from({ length: 3 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-		return `https://meet.google.com/${segment()}-${segment()}-${segment()}`;
-	}
-
 	async function submitBooking() {
 		if (!selectedDate || !selectedTime || !guestName || !guestEmail || !meetingObjective) {
 			bookingError = i18n.scheduling.errors.fillAll;
@@ -350,7 +365,35 @@
 		const endTime = new Date(startTime);
 		endTime.setHours(endTime.getHours() + 1);
 
-		const meetLink = generateMeetLink();
+		let meetLink: string | null = null;
+		let calendarEventId: string | null = null;
+
+		try {
+			// Create Google Calendar event with Meet
+			const calendarResponse = await fetch('/api/calendar', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					guestName,
+					guestEmail,
+					meetingObjective,
+					startTime: startTime.toISOString(),
+					endTime: endTime.toISOString(),
+					language: getLanguage()
+				})
+			});
+
+			if (calendarResponse.ok) {
+				const calendarData = await calendarResponse.json();
+				meetLink = calendarData.meetLink;
+				calendarEventId = calendarData.eventId;
+			} else {
+				console.warn('Calendar API failed, continuing without Meet link');
+			}
+		} catch (calendarError) {
+			console.warn('Calendar API error:', calendarError);
+			// Continue without Meet link - we'll still save the booking
+		}
 
 		try {
 			await addDoc(collection(db, COLLECTIONS.MEETS), {
@@ -361,7 +404,7 @@
 				end_time: Timestamp.fromDate(endTime),
 				timezone: 'Europe/Madrid',
 				meet_link: meetLink,
-				calendar_event_id: null,
+				calendar_event_id: calendarEventId,
 				status: 'confirmed',
 				cancelled_at: null,
 				cancellation_reason: null,
