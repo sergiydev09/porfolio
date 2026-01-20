@@ -510,6 +510,7 @@
 </script>
 
 <div
+	id="scheduling-panel"
 	class="glass-panel bg-dark-800 rounded-2xl p-0 h-full max-h-[calc(100vh-6rem)] flex flex-col shadow-lg overflow-hidden"
 >
 	<!-- Calendar header -->
