@@ -31,11 +31,11 @@
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
-    name: "Savaitech - Desarrollo Apps e IA",
+    name: "Savaitech - Desarrollo Apps GRATIS",
     description:
-      "Estudio de desarrollo de software especializado en Apps Móviles, Integración de IA y MVPs de alto rendimiento. Calidad de gran consultora con agilidad de freelance.",
+      "Desarrollo tu App Android, iOS o Web GRATIS a cambio del 1% de los beneficios. Si tu proyecto tiene modelo de negocio (pagos, publicidad, suscripciones), yo asumo el riesgo del desarrollo. Especializado en IA, Flutter y desarrollo móvil.",
     url: "https://savaitech.web.app",
-    priceRange: "€€-€€€",
+    priceRange: "GRATIS - Revenue Share",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Madrid",
@@ -49,15 +49,35 @@
     ],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "Servicios de Desarrollo de Software e IA",
+      name: "Desarrollo de Apps GRATIS - Revenue Share",
       itemListElement: [
+        {
+          "@type": "Offer",
+          name: "Desarrollo App GRATIS - Revenue Share",
+          description:
+            "Desarrollo tu aplicación Android, iOS o Web completamente GRATIS. Solo cobro el 1% de los beneficios que genere tu app. Ideal para proyectos con modelo de negocio (pagos, publicidad, suscripciones). Cero riesgo para ti.",
+          price: "0",
+          priceCurrency: "EUR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            price: "0",
+            priceCurrency: "EUR",
+            description: "Desarrollo gratuito a cambio del 1% de beneficios futuros"
+          },
+          itemOffered: {
+            "@type": "Service",
+            name: "Desarrollo de App Gratis",
+            description:
+              "App Android, iOS o Web desarrollada sin coste inicial. Revenue share del 1% sobre beneficios.",
+          },
+        },
         {
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
             name: "Desarrollo de MVPs con IA",
             description:
-              "Lanza tu producto en 4-8 semanas con inteligencia artificial integrada. Precio competitivo y velocidad récord.",
+              "Lanza tu producto en 4-8 semanas con inteligencia artificial integrada. Opción de desarrollo gratis con revenue share.",
           },
         },
         {
@@ -66,16 +86,16 @@
             "@type": "Service",
             name: "Desarrollo App Móvil Multiplataforma",
             description:
-              "Apps para iOS y Android con Flutter/Kotlin. Código de alta calidad y rendimiento nativo.",
+              "Apps para iOS y Android con Flutter/Kotlin. Código de alta calidad. Disponible modalidad gratuita.",
           },
         },
         {
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
-            name: "Consultoría Técnica & CTO Fraccional",
+            name: "Automatización y Web Apps",
             description:
-              "Dirección técnica senior para startups y pymes que necesitan escalar su tecnología.",
+              "Desarrollo web y automatizaciones. SvelteKit, React. Opción revenue share disponible.",
           },
         },
         {
@@ -97,10 +117,26 @@
     mainEntity: [
       {
         "@type": "Question",
-        name: "¿Cómo es el proceso de trabajo?",
+        name: "¿Puedo desarrollar mi app gratis?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "El proceso tiene 4 fases: 1) Primera reunión gratuita de 30-60 min para entender tu proyecto, 2) Sesión de profundización técnica gratuita, 3) Propuesta detallada con alcance y presupuesto, 4) Implementación iterativa con demos frecuentes.",
+          text: "Sí. Si tu proyecto tiene un modelo de negocio definido (pagos in-app, suscripciones, publicidad, comisiones), puedo desarrollar tu app completamente GRATIS a cambio del 1% de los beneficios futuros. Es un modelo revenue share donde yo asumo el riesgo del desarrollo.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "¿Cómo funciona el desarrollo gratis por porcentaje?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Es simple: 1) Me presentas tu idea con su modelo de negocio, 2) Si me parece viable, desarrollo la app sin cobrarte nada, 3) Firmamos un contrato donde me corresponde el 1% de los beneficios netos que genere la app. Tú no arriesgas dinero, yo arriesgo mi tiempo.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "¿Qué tipo de apps puedo crear gratis?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Apps Android, iOS, Web o multiplataforma con Flutter. El requisito es que tengan un modelo de negocio claro: e-commerce, marketplace, SaaS con suscripción, apps con publicidad, servicios con comisión, etc. La app debe poder generar ingresos.",
         },
       },
       {
@@ -108,15 +144,23 @@
         name: "¿Cuánto tiempo tarda desarrollar un MVP?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Un MVP production-ready típicamente se desarrolla en 4-8 semanas, dependiendo de la complejidad del proyecto.",
+          text: "Un MVP production-ready típicamente se desarrolla en 4-8 semanas, dependiendo de la complejidad del proyecto. Tanto en modalidad de pago como en revenue share gratuito.",
         },
       },
       {
         "@type": "Question",
-        name: "¿Qué tecnologías utilizas?",
+        name: "¿Qué tecnologías utilizas para el desarrollo gratuito?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Especializado en Kotlin para Android nativo, Flutter para apps multiplataforma, Kotlin Multiplatform (KMP) para compartir lógica, e integración de IA con Claude, GPT-4 y Gemini.",
+          text: "Las mismas que para proyectos de pago: Kotlin para Android nativo, Flutter para apps multiplataforma, SvelteKit para web, e integración de IA con Claude, GPT-4 y Gemini. Calidad profesional garantizada.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "¿Todos los proyectos son aceptados para desarrollo gratis?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "No, cada proyecto es evaluado individualmente. Necesito ver viabilidad técnica y un modelo de negocio sólido. Agenda una reunión gratuita para presentarme tu idea y te diré si encaja en el programa de desarrollo por revenue share.",
         },
       },
     ],

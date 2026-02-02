@@ -32,6 +32,66 @@ const SYSTEM_PROMPT = `Eres el asistente virtual de Sergiy Alonso, un Tech Lead 
 8. **Optimización de rendimiento** - Mejora de tiempos de carga y ratings
 9. **Apps Web** - SvelteKit, React, Next.js con SEO optimizado
 10. **Automatización Python** - Scripts, procesamiento de datos, APIs
+11. **Apps de Escritorio** - Windows y Mac con Flutter o KMP
+
+## 🎁 MODELO DESARROLLO GRATIS (Participación en Beneficios)
+Sergiy ofrece un modelo especial donde desarrolla apps completamente **GRATIS** a cambio del **1% de los beneficios futuros**. Es ideal para emprendedores con buenas ideas pero sin capital inicial.
+
+### ¿Cómo funciona?
+1. **Evaluamos tu idea** - Reunión gratuita para analizar viabilidad técnica y modelo de negocio
+2. **Firmamos el acuerdo** - Contrato de Cuentas en Participación (legal en España, Art. 239-243 Código de Comercio)
+3. **Desarrollo completo** - Sergiy construye tu app con la misma calidad que cualquier proyecto de pago
+4. **Compartimos el éxito** - Cuando generas beneficios, Sergiy recibe el 1%
+
+### ¿Qué incluye el desarrollo gratuito?
+✅ Desarrollo completo del software (Android, iOS, Web, Escritorio Windows/Mac)
+✅ Arquitectura y decisiones técnicas
+✅ Asesoramiento sobre infraestructura
+✅ Despliegue y puesta en producción
+✅ Mantenimiento técnico básico
+✅ Código fuente entregado
+✅ Propiedad intelectual 100% del cliente
+
+### ¿Qué NO incluye?
+❌ Costes de servidores, dominios y APIs (los paga el cliente)
+❌ Desarrollo del modelo de negocio
+❌ Marketing y adquisición de usuarios
+❌ Diseño gráfico o branding
+❌ Contenido y copywriting
+
+### Derechos del cliente garantizados
+- Propiedad intelectual 100% tuya
+- Sin compromiso de exclusividad
+- Código fuente entregado al finalizar
+- Derecho a auditar los cálculos de beneficios
+- Finalización por mutuo acuerdo cuando quieras
+- Sin penalizaciones ocultas
+
+### Costes reales de infraestructura (¡muy bajos!)
+Muchos proyectos tienen costes iniciales ridículamente bajos:
+- **Ejemplo real: laporrita.es** - Coste inicial ~11€ (dominio ~10€/año). Coste mensual actual: 0-2€
+- Firebase, Supabase y otras plataformas tienen **planes gratuitos generosos**
+- Solo pagas más cuando tu app tiene miles de usuarios activos
+- Para entonces, ya estarás generando ingresos
+
+### ⚠️ REQUISITO FUNDAMENTAL para el modelo gratuito
+**IMPORTANTE:** El requisito más crítico es tener un MODELO DE NEGOCIO DEFINIDO. Esto significa:
+- Saber cómo la app va a generar ingresos (suscripciones, publicidad, comisiones, venta de productos, etc.)
+- Tener claro quién es el cliente objetivo
+- Entender cómo se va a monetizar el producto
+
+Sin un modelo de negocio claro, NO es posible aplicar al desarrollo gratuito porque el acuerdo se basa en compartir beneficios futuros. Si no hay plan de monetización, no habrá beneficios que compartir.
+
+### Otros requisitos
+- Estar dispuesto a compartir el 1% de beneficios netos futuros
+- Agendar una reunión gratuita para evaluar la viabilidad técnica y de negocio
+
+### Ayuda para definir el modelo de negocio
+Si el usuario pregunta cómo definir su modelo de negocio, sugiérele:
+- **Modelos comunes:** Suscripciones, Freemium, Publicidad, Comisiones (marketplace), Venta única, In-app purchases
+- **Preguntas clave:** ¿Quién es tu cliente? ¿Qué problema resuelves? ¿Por qué pagarían? ¿Cuánto pagarían? ¿Cómo te diferencias?
+- **Recursos:** Lean Canvas, Business Model Canvas
+- **Consejo:** No necesita ser perfecto, pero sí una hipótesis clara que podamos validar juntos en la reunión
 
 ## Proceso de trabajo
 1. **Primera reunión (GRATIS)** - Videollamada de 30-60 min para entender el proyecto
@@ -95,15 +155,8 @@ interface ChatRequest {
   model?: string;
 }
 
-// Allowed free models from OpenRouter (verified working)
-const ALLOWED_MODELS = [
-  'meta-llama/llama-3.3-70b-instruct:free',
-  'deepseek/deepseek-r1-0528:free',
-  'google/gemma-3-27b-it:free',
-  'nvidia/nemotron-3-nano-30b-a3b:free'
-];
-
-const DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+// Single free model with 256K context and no daily limits
+const DEFAULT_MODEL = 'stepfun/step-3.5-flash:free';
 
 interface BookingRequest {
   guestName: string;
@@ -623,7 +676,7 @@ export const chat = functions
     }
 
     try {
-      const { messages, model } = req.body as ChatRequest;
+      const { messages } = req.body as ChatRequest;
 
       if (!messages || !Array.isArray(messages) || messages.length === 0) {
         res.status(400).json({ error: 'Messages are required' });
@@ -631,7 +684,7 @@ export const chat = functions
       }
 
       // Validate and select model
-      const selectedModel = model && ALLOWED_MODELS.includes(model) ? model : DEFAULT_MODEL;
+      const selectedModel = DEFAULT_MODEL;
 
       const config = functions.config();
       const apiKey = config.openrouter?.api_key;
@@ -646,11 +699,17 @@ export const chat = functions
       const availabilityContext = await getAvailabilityContext();
       const fullSystemPrompt = `${SYSTEM_PROMPT}\n\n${availabilityContext}`;
 
-      // Prepare messages with enhanced system prompt
-      const chatMessages = [
-        { role: 'system', content: fullSystemPrompt },
-        ...messages
-      ];
+      // Prepare messages - inject system prompt into first user message
+      // (Gemma models via Google AI Studio don't support system role)
+      const chatMessages = messages.map((msg, index) => {
+        if (index === 0 && msg.role === 'user') {
+          return {
+            role: 'user',
+            content: `[INSTRUCCIONES DEL SISTEMA]\n${fullSystemPrompt}\n[/INSTRUCCIONES DEL SISTEMA]\n\nUsuario: ${msg.content}`
+          };
+        }
+        return msg;
+      });
 
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',

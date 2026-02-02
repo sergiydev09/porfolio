@@ -21,6 +21,7 @@
 	let guestName = $state("");
 	let guestEmail = $state("");
 	let meetingObjective = $state("");
+	let acceptedPrivacy = $state(false);
 	let isSubmitting = $state(false);
 	let bookingSuccess = $state(false);
 	let bookingError = $state<string | null>(null);
@@ -35,6 +36,9 @@
 
 	// Track if we need to scroll after loading completes
 	let pendingScrollToFirstSlot = $state(false);
+
+	// Highlight animation state (triggered from modal)
+	let showHighlight = $state(false);
 
 	// Generate time slots from 8:00 to 22:00 in 15-minute increments
 	const allTimeSlots = $derived.by(() => {
@@ -53,6 +57,23 @@
 	onMount(async () => {
 		await selectFirstAvailableDay();
 		initialized = true;
+
+		// Listen for external requests to select next available day
+		window.addEventListener('schedule-meeting-request', handleScheduleRequest);
+	});
+
+	// Handle external schedule request (from modal)
+	async function handleScheduleRequest() {
+		await selectFirstAvailableDay();
+		// Trigger highlight animation
+		showHighlight = true;
+		setTimeout(() => {
+			showHighlight = false;
+		}, 3000);
+	}
+
+	onDestroy(() => {
+		window.removeEventListener('schedule-meeting-request', handleScheduleRequest);
 	});
 
 	// Effect to scroll to first available slot after loading completes
@@ -384,6 +405,11 @@
 			return;
 		}
 
+		if (!acceptedPrivacy) {
+			bookingError = i18n.scheduling.privacy.required;
+			return;
+		}
+
 		// Validate email
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		if (!emailRegex.test(guestEmail)) {
@@ -422,6 +448,7 @@
 				guestName = "";
 				guestEmail = "";
 				meetingObjective = "";
+				acceptedPrivacy = false;
 				selectedTime = null;
 				showBookingForm = false;
 				bookingSuccess = false;
@@ -448,7 +475,7 @@
 
 <div
 	id="scheduling-panel"
-	class="glass-panel bg-dark-800 rounded-2xl p-0 h-full max-h-[calc(100vh-6rem)] flex flex-col shadow-lg overflow-hidden"
+	class="glass-panel bg-dark-800 rounded-2xl p-0 h-full max-h-[calc(100vh-6rem)] flex flex-col shadow-lg overflow-hidden transition-all duration-300 {showHighlight ? 'neon-highlight' : ''}"
 >
 	<!-- Calendar header -->
 	<div class="p-6 border-b border-dark-700 bg-dark-800 z-10">
@@ -606,6 +633,21 @@
 									.objectivePlaceholder}
 							></textarea>
 						</div>
+
+						<div class="flex items-start gap-2">
+							<input
+								id="privacy-checkbox"
+								type="checkbox"
+								bind:checked={acceptedPrivacy}
+								class="mt-0.5 w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-900"
+							/>
+							<label for="privacy-checkbox" class="text-xs text-dark-300">
+								{i18n.scheduling.privacy.label}
+								<a href="/privacidad" target="_blank" class="text-primary-400 hover:text-primary-300 underline">
+									{i18n.scheduling.privacy.link}
+								</a>
+							</label>
+						</div>
 					</div>
 
 					{#if bookingError}
@@ -732,3 +774,73 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Neon highlight animation for when triggered from modal */
+	:global(.neon-highlight) {
+		animation: neonPulse 0.5s ease-in-out 6;
+	}
+
+	@keyframes neonPulse {
+		0%, 100% {
+			box-shadow:
+				0 0 10px rgba(16, 185, 129, 0.6),
+				0 0 20px rgba(16, 185, 129, 0.5),
+				0 0 40px rgba(16, 185, 129, 0.3),
+				0 0 60px rgba(16, 185, 129, 0.2);
+		}
+		50% {
+			box-shadow:
+				0 0 20px rgba(16, 185, 129, 1),
+				0 0 40px rgba(16, 185, 129, 0.8),
+				0 0 60px rgba(16, 185, 129, 0.6),
+				0 0 80px rgba(16, 185, 129, 0.4),
+				0 0 100px rgba(16, 185, 129, 0.2),
+				inset 0 0 20px rgba(16, 185, 129, 0.1);
+		}
+	}
+
+	:global(.neon-highlight)::before {
+		content: '';
+		position: absolute;
+		inset: -3px;
+		border-radius: 1.1rem;
+		padding: 3px;
+		background: linear-gradient(
+			45deg,
+			rgba(16, 185, 129, 1),
+			rgba(6, 182, 212, 1),
+			rgba(16, 185, 129, 1),
+			rgba(6, 182, 212, 1)
+		);
+		background-size: 300% 300%;
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		animation: borderGlow 0.5s ease-in-out 6, gradientShift 1s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	@keyframes borderGlow {
+		0%, 100% {
+			opacity: 0.5;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes gradientShift {
+		0% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+		100% {
+			background-position: 0% 50%;
+		}
+	}
+</style>

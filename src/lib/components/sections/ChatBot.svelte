@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getTranslations, getLanguage } from "$lib/i18n/index.svelte";
-	import { fly, fade, slide } from "svelte/transition";
+	import { fly, fade } from "svelte/transition";
 
 	const t = getTranslations();
 
@@ -12,87 +12,28 @@
 		meetLink?: string;
 	}
 
-	interface LLMModel {
-		id: string;
-		name: string;
-		provider: string;
-		context: string;
-		type: "conversational" | "reasoning";
-		description: {
-			es: string;
-			en: string;
-		};
-	}
-
-	// Free LLM models available via OpenRouter (verified working)
-	const availableModels: LLMModel[] = [
-		{
-			id: "google/gemma-3-27b-it:free",
-			name: "Gemma 3 27B",
-			provider: "Google",
-			context: "131K",
-			type: "conversational",
-			description: {
-				es: "Eficiente y multimodal.",
-				en: "Efficient and multimodal.",
-			},
-		},
-		{
-			id: "deepseek/deepseek-r1-0528:free",
-			name: "DeepSeek R1",
-			provider: "DeepSeek",
-			context: "164K",
-			type: "reasoning",
-			description: {
-				es: "Razonamiento avanzado. Piensa paso a paso.",
-				en: "Advanced reasoning. Thinks step by step.",
-			},
-		},
-		{
-			id: "meta-llama/llama-3.3-70b-instruct:free",
-			name: "Llama 3.3 70B",
-			provider: "Meta",
-			context: "131K",
-			type: "conversational",
-			description: {
-				es: "El más fiable. Excelente para chat multilingüe.",
-				en: "Most reliable. Excellent for multilingual chat.",
-			},
-		},
-		{
-			id: "nvidia/nemotron-3-nano-30b-a3b:free",
-			name: "Nemotron 3 30B",
-			provider: "NVIDIA",
-			context: "256K",
-			type: "reasoning",
-			description: {
-				es: "Razonamiento NVIDIA con gran contexto.",
-				en: "NVIDIA reasoning with large context.",
-			},
-		},
-	];
+	// Single free model with high limits (256K context, no daily caps)
+	const MODEL_ID = "stepfun/step-3.5-flash:free";
 
 	let messages = $state<Message[]>([]);
 	let inputValue = $state("");
 	let isLoading = $state(false);
 	let chatContainer = $state<HTMLDivElement | null>(null);
 	let isExpanded = $state(false);
-	let selectedModel = $state(availableModels[0]);
-	let showModelSelector = $state(false);
 
 	const suggestedQuestions = $derived(
 		getLanguage() === "es"
 			? [
-					"¿Qué servicios ofreces?",
+					"¿Cómo funciona el desarrollo gratis?",
+					"¿Cómo defino mi modelo de negocio?",
 					"Quiero agendar una reunión",
-					"¿Cuánto cuesta un MVP?",
-					"¿Con qué tecnologías trabajas?",
+					"¿Qué servicios ofreces?",
 				]
 			: [
-					"What services do you offer?",
+					"How does free development work?",
+					"How do I define my business model?",
 					"I want to book a meeting",
-					"How much does an MVP cost?",
-					"What technologies do you work with?",
+					"What services do you offer?",
 				],
 	);
 
@@ -122,7 +63,7 @@
 						content: m.content,
 					})),
 					language: getLanguage(),
-					model: selectedModel.id,
+					model: MODEL_ID,
 				}),
 			});
 
@@ -134,7 +75,6 @@
 			const assistantMessage: Message = {
 				role: "assistant",
 				content: data.message,
-				model: selectedModel.name,
 				bookingCreated: data.bookingCreated || false,
 				meetLink: data.meetLink,
 			};
@@ -173,11 +113,6 @@
 		}
 	}
 
-	function selectModel(model: LLMModel) {
-		selectedModel = model;
-		showModelSelector = false;
-	}
-
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
@@ -203,12 +138,6 @@
 	});
 
 	let isFocused = $state(false);
-
-	function scrollToBooking() {
-		document
-			.getElementById("booking")
-			?.scrollIntoView({ behavior: "smooth" });
-	}
 </script>
 
 <section class="py-16 px-4">
@@ -230,142 +159,6 @@
 		<!-- Interactive Eyes -->
 		<div class="mb-4">
 			<Eyes interactionState={chatState} emotion={chatEmotion} />
-		</div>
-
-		<!-- Model Selector -->
-		<div class="mb-4 relative">
-			<button
-				onclick={() => (showModelSelector = !showModelSelector)}
-				class="w-full flex items-center justify-between gap-3 px-4 py-3 bg-dark-900/50 border border-dark-700 rounded-xl hover:border-dark-600 transition-colors"
-			>
-				<div class="flex items-center gap-3">
-					<div
-						class="w-8 h-8 rounded-lg bg-primary-500/20 flex items-center justify-center text-primary-400 text-lg"
-					>
-						🤖
-					</div>
-					<div class="text-left">
-						<div class="flex items-center gap-2">
-							<span class="text-white font-medium"
-								>{selectedModel.name}</span
-							>
-							<span
-								class="px-2 py-0.5 text-xs rounded-full {selectedModel.type ===
-								'conversational'
-									? 'bg-emerald-500/20 text-emerald-400'
-									: 'bg-purple-500/20 text-purple-400'}"
-							>
-								{selectedModel.type === "reasoning"
-									? getLanguage() === "es"
-										? "Razonador"
-										: "Reasoning"
-									: getLanguage() === "es"
-										? "Conversacional"
-										: "Conversational"}
-							</span>
-						</div>
-						<span class="text-dark-400 text-sm"
-							>{selectedModel.provider} · {selectedModel.context}</span
-						>
-					</div>
-				</div>
-				<svg
-					class="w-5 h-5 text-dark-400 transition-transform {showModelSelector
-						? 'rotate-180'
-						: ''}"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 9l-7 7-7-7"
-					/>
-				</svg>
-			</button>
-
-			<!-- Dropdown -->
-			{#if showModelSelector}
-				<div
-					class="absolute z-50 w-full mt-2 bg-dark-900 border border-dark-700 rounded-xl shadow-2xl overflow-hidden"
-					transition:slide={{ duration: 200 }}
-				>
-					<div class="max-h-[320px] overflow-y-auto">
-						{#each availableModels as model}
-							<button
-								onclick={() => selectModel(model)}
-								class="w-full flex items-start gap-3 px-4 py-3 hover:bg-dark-800 transition-colors text-left"
-								class:bg-dark-800={model.id ===
-									selectedModel.id}
-							>
-								<div
-									class="w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 {model.id ===
-									selectedModel.id
-										? 'border-primary-400 bg-primary-400'
-										: 'border-dark-500'}"
-								>
-									{#if model.id === selectedModel.id}
-										<svg
-											class="w-3 h-3 text-white"
-											fill="currentColor"
-											viewBox="0 0 20 20"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-												clip-rule="evenodd"
-											/>
-										</svg>
-									{/if}
-								</div>
-								<div class="flex-1 min-w-0">
-									<div
-										class="flex items-center gap-2 flex-wrap"
-									>
-										<span
-											class="font-medium"
-											class:text-white={model.id ===
-												selectedModel.id}
-											class:text-dark-200={model.id !==
-												selectedModel.id}
-										>
-											{model.name}
-										</span>
-										<span
-											class="px-2 py-0.5 text-xs rounded-full {model.type ===
-											'conversational'
-												? 'bg-emerald-500/20 text-emerald-400'
-												: 'bg-purple-500/20 text-purple-400'}"
-										>
-											{model.type === "reasoning"
-												? getLanguage() === "es"
-													? "Razonador"
-													: "Reasoning"
-												: getLanguage() === "es"
-													? "Conversacional"
-													: "Conversational"}
-										</span>
-									</div>
-									<p class="text-dark-400 text-sm mt-0.5">
-										{model.provider} · {model.context}
-									</p>
-								</div>
-							</button>
-						{/each}
-					</div>
-					<div
-						class="px-4 py-2 bg-dark-800/50 border-t border-dark-700"
-					>
-						<p class="text-dark-500 text-xs text-center">
-							{getLanguage() === "es"
-								? "✨ Todos los modelos son gratuitos vía OpenRouter"
-								: "✨ All models are free via OpenRouter"}
-						</p>
-					</div>
-				</div>
-			{/if}
 		</div>
 
 		<!-- Chat Container -->
@@ -510,22 +303,5 @@
 			</div>
 		</div>
 
-		<!-- CTA to book call -->
-		<div class="mt-6 text-center">
-			<p class="text-dark-400 text-sm mb-3">
-				{getLanguage() === "es"
-					? "¿Prefieres hablar directamente?"
-					: "Prefer to talk directly?"}
-			</p>
-			<button
-				onclick={scrollToBooking}
-				class="inline-flex items-center gap-2 px-6 py-3 bg-transparent border border-primary-500 text-primary-400 hover:bg-primary-500/10 rounded-xl transition-colors"
-			>
-				<span class="material-icons-round">calendar_month</span>
-				{getLanguage() === "es"
-					? "Reservar llamada gratis"
-					: "Book free call"}
-			</button>
-		</div>
 	</div>
 </section>

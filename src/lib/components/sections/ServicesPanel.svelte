@@ -2,9 +2,13 @@
   import { getTranslations } from '$lib/i18n/index.svelte';
   import LanguageSwitcher from '$components/ui/LanguageSwitcher.svelte';
   import ChatBot from '$components/sections/ChatBot.svelte';
+  import FreeDevContractModal from '$components/ui/FreeDevContractModal.svelte';
 
   // Get translations reactively
   let i18n = $derived(getTranslations());
+
+  // Modal state
+  let isContractModalOpen = $state(false);
 
   // Client types for targeting
   const clientTypeIds = ['startup', 'scale', 'enterprise'] as const;
@@ -131,6 +135,76 @@
         {/each}
       </div>
     </div>
+
+    <!-- ==================== SECTION 1: FREE DEVELOPMENT ==================== -->
+    <div class="mb-10">
+      <!-- Section Header -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/30 to-teal-600/30 flex items-center justify-center">
+          <span class="material-icons-round text-emerald-400">card_giftcard</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            {i18n.services.sections?.free ?? 'Opción Gratuita'}
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold uppercase animate-pulse">
+              {i18n.services.freeOffer.badge}
+            </span>
+          </h3>
+          <p class="text-dark-400 text-xs">{i18n.services.sections?.freeSubtitle ?? 'Desarrollo a cambio de participación en beneficios'}</p>
+        </div>
+      </div>
+
+      <!-- FREE Development Card -->
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 p-1 shadow-lg shadow-emerald-500/30">
+        <div class="relative bg-dark-900/95 rounded-lg p-6 overflow-hidden">
+          <!-- Animated background pattern -->
+          <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=%2230%22 height=%2230%22 viewBox=%220 0 30 30%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cpath d=%22M15 0L30 15L15 30L0 15z%22 fill=%22%2310b981%22 fill-opacity=%220.4%22/%3E%3C/svg%3E'); animation: slidePattern 20s linear infinite;"></div>
+          </div>
+
+          <div class="relative z-10">
+            <!-- Header row: Icon + Title + Button -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div class="flex items-center gap-3">
+                <div class="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <span class="material-icons-round text-white text-2xl">card_giftcard</span>
+                </div>
+                <div>
+                  <h3 class="text-xl md:text-2xl font-bold text-white">{i18n.services.freeOffer.title}</h3>
+                  <p class="text-emerald-400 font-semibold text-sm">{i18n.services.freeOffer.subtitle}</p>
+                </div>
+              </div>
+
+              <!-- CTA Button -->
+              <button
+                onclick={() => isContractModalOpen = true}
+                class="shrink-0 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-sm hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300 hover:scale-105 cursor-pointer"
+              >
+                {i18n.services.freeOffer.cta}
+                <span class="material-icons-round text-lg">arrow_forward</span>
+              </button>
+            </div>
+
+            <!-- Main content: Description -->
+            <p class="text-dark-200 text-base leading-relaxed">{i18n.services.freeOffer.description}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== DIVIDER ==================== -->
+    <div class="relative flex items-center justify-center my-8">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-dark-600"></div>
+      </div>
+      <div class="relative px-4 bg-dark-800 flex items-center gap-2">
+        <span class="material-icons-round text-dark-500 text-sm">payments</span>
+        <span class="text-dark-400 text-sm font-medium uppercase tracking-wider">{i18n.services.sections?.paid ?? 'Servicios de Pago'}</span>
+        <span class="material-icons-round text-dark-500 text-sm">payments</span>
+      </div>
+    </div>
+
+    <!-- ==================== SECTION 2: PAID SERVICES ==================== -->
 
     <!-- Featured Services -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
@@ -385,6 +459,9 @@
     <!-- AI ChatBot Section -->
     <ChatBot />
 
+    <!-- Free Development Contract Modal -->
+    <FreeDevContractModal bind:isOpen={isContractModalOpen} />
+
     <!-- Trust indicators -->
     <div class="mt-6 flex flex-wrap items-center justify-center gap-6 text-dark-500 text-xs">
       <div class="flex items-center gap-2">
@@ -407,6 +484,11 @@
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
+  }
+
+  @keyframes slidePattern {
+    0% { transform: translateX(0) translateY(0); }
+    100% { transform: translateX(-30px) translateY(-30px); }
   }
 
   .progress-bar {

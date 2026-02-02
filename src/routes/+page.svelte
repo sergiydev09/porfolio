@@ -18,18 +18,17 @@
 <SchemaOrg />
 
 <svelte:head>
-  <!-- Primary Meta Tags -->
+  <!-- Primary Meta Tags - MVPs + GRATIS -->
   <title
-    >Desarrollo de Apps e IA | MVPs en 4 Semanas | Calidad Consultora, Precio
-    Freelance</title
+    >Desarrollo Apps GRATIS o MVPs en 4 Semanas | Android, iOS, IA | Madrid</title
   >
   <meta
     name="description"
-    content="Construye tu MVP o App con IA en tiempo récord. Calidad de Tech Lead Senior a precio competitivo. Experto en Android, Flutter e Inteligencia Artificial. Startups y Pymes."
+    content="Desarrollo de Apps Android, iOS y Web. ¿Sin presupuesto? Opción GRATIS: desarrollo tu app por 0€ a cambio del 1% de beneficios. ¿Con presupuesto? MVPs en 4-8 semanas con IA. Calidad de Tech Lead Senior. Madrid."
   />
   <meta
     name="keywords"
-    content="empresa desarrollo apps madrid, desarrollo mvp ia, programador ia freelance, crear app precio, experto flutter, tech lead android, consultora software pymes, desarrollo web sveltekit, integracion gpt4 apps"
+    content="desarrollo app gratis, crear app gratis, mvp desarrollo rapido, app android gratis, desarrollo ios gratis, hacer app sin pagar, free app development, desarrollo mvp ia, programador ia freelance, crear app precio, experto flutter, tech lead android, revenue share desarrollo, startup sin inversion, consultora software pymes"
   />
   <meta name="author" content="Sergiy Alonso Villar" />
   <meta
@@ -56,11 +55,11 @@
   <meta property="og:url" content="https://savaitech.web.app" />
   <meta
     property="og:title"
-    content="Desarrollo de Apps e IA | MVPs Rápidos y Calidad Top"
+    content="Desarrollo Apps GRATIS o MVPs Rápidos | Android, iOS, IA"
   />
   <meta
     property="og:description"
-    content="Potencia de empresa, agilidad freelance. Desarrollo de Apps Móviles, Web e Integración de IA. Tu socio tecnológico para lanzar rápido."
+    content="Dos opciones: 1) GRATIS - Desarrollo tu app por 0€ a cambio del 1% de beneficios. 2) MVPs en 4-8 semanas con IA. Calidad de consultora, precio freelance."
   />
   <meta
     property="og:image"
@@ -70,14 +69,14 @@
   <meta property="og:image:height" content="630" />
   <meta property="og:locale" content="es_ES" />
   <meta property="og:locale:alternate" content="en_GB" />
-  <meta property="og:site_name" content="Savaitech - Desarrollo Software" />
+  <meta property="og:site_name" content="Savaitech - Desarrollo Apps e IA" />
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Desarrollo de Apps e IA | MVPs Rápidos" />
+  <meta name="twitter:title" content="Apps GRATIS (1% beneficios) o MVPs Rápidos | Madrid" />
   <meta
     name="twitter:description"
-    content="Construye tu MVP o App con IA en tiempo récord. Calidad Enterprise a precio competitivo. Madrid."
+    content="Desarrollo apps Android/iOS/Web. Opción GRATIS por revenue share o MVPs en 4-8 semanas. Experto IA, Flutter, Kotlin."
   />
   <meta
     name="twitter:image"
