@@ -21,17 +21,13 @@ export class MeetingService {
     }
 
     async bookMeeting(data: BookingData, language: string = 'es'): Promise<void> {
-        // 1. Business Validation (could be moved to Domain Entities validation method)
         this.validateBooking(data);
 
         let meetLink: string | null = null;
         let calendarEventId: string | null = null;
+        let calendarSuccess = false;
 
-        // 2. Call Google Calendar API (External Service)
-        // Ideally this should be behind a CalendarService interface, but for now we keep the fetch here
-        // or we can move it to a dedicated file. Keeping it here to mirror original logic but cleaner.
         try {
-            // We need to recreate the ISO strings expected by the cloud function
             const calendarResponse = await fetch(
                 "https://europe-west1-savaitech.cloudfunctions.net/createCalendarEvent",
                 {
@@ -52,32 +48,19 @@ export class MeetingService {
                 const calendarData = await calendarResponse.json();
                 meetLink = calendarData.meetLink;
                 calendarEventId = calendarData.eventId;
+                calendarSuccess = true;
             } else {
-                console.warn("Calendar API failed, continuing without Meet link");
+                console.warn("Calendar API failed, saving as pending for manual review");
             }
         } catch (error) {
-            console.warn("Calendar API error:", error);
+            console.warn("Calendar API error, saving as pending:", error);
         }
 
-        // 3. Persist to Database via Repository
-        // We cast to any to access the specific method we created in Firebase impl
-        // Or better, we strictly use the interface. 
-        // Our interface only has createMeeting(data). 
-        // We need to update the interface to support these extra fields or update the BookingData entity.
-        // Let's assume we want to stick to the interface. 
-        // For this immediate refactor, I'll allow the cast or better yet:
-        // Update the Repository to accept optional metadata?
+        // Status depends on Calendar API success
+        const status = calendarSuccess ? 'confirmed' : 'pending';
 
-        // Actually, let's use the createMeetingWithDetails if we can, or just call createMeeting 
-        // implementation in FirebaseRepo needs to handle this.
-
-        // To do it clean: The interface createMeeting should accept a fuller object.
-        // But let's use the explicit cast for the specific feature of "Saving with Meet Link" 
-        // if we want to keep the interface generic for "BookingData".
-
-        // A better approach for this file:
         if ('createMeetingWithDetails' in this.repository) {
-            await (this.repository as any).createMeetingWithDetails(data, meetLink, calendarEventId);
+            await (this.repository as any).createMeetingWithDetails(data, meetLink, calendarEventId, status);
         } else {
             await this.repository.createMeeting(data);
         }

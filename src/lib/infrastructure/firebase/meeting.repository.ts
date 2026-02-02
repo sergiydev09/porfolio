@@ -105,12 +105,11 @@ export class FirebaseMeetingRepository implements MeetingRepository {
         });
     }
 
-    // Extended method to support the full flow including the properties coming from the Calendar API
-    // We can overload or create a specific method.
     async createMeetingWithDetails(
         data: BookingData,
         meetLink: string | null,
-        calendarEventId: string | null
+        calendarEventId: string | null,
+        status: 'pending' | 'confirmed' = 'confirmed'
     ): Promise<void> {
         const db = this.db;
         if (!db) throw new Error('Firebase connection failed');
@@ -124,7 +123,7 @@ export class FirebaseMeetingRepository implements MeetingRepository {
             timezone: 'Europe/Madrid',
             meet_link: meetLink,
             calendar_event_id: calendarEventId,
-            status: 'confirmed',
+            status,
             cancelled_at: null,
             cancellation_reason: null,
             admin_notes: null,
