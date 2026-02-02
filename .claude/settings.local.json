@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(bunx svelte-kit:*)",
+      "Bash(bun run check:*)",
+      "Bash(timeout 10 bun run dev:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

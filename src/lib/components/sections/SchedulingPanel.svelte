@@ -1,19 +1,8 @@
 <script lang="ts">
 	import { fade } from "svelte/transition";
 	import { onMount, onDestroy } from "svelte";
-	import { getFirebaseDb } from "$lib/firebase/client";
-	import { COLLECTIONS } from "$lib/firebase/collections";
-	import {
-		collection,
-		query,
-		where,
-		onSnapshot,
-		addDoc,
-		Timestamp,
-		serverTimestamp,
-		type Unsubscribe,
-	} from "firebase/firestore";
-	import type { Meet } from "$lib/types/firestore";
+	import { meetingService } from "$lib/services/meeting.service";
+	import type { Meeting } from "$lib/core/entities/meeting";
 	import { getTranslations, getLanguage } from "$lib/i18n/index.svelte";
 
 	let i18n = $derived(getTranslations());
@@ -37,12 +26,15 @@
 	let bookingError = $state<string | null>(null);
 
 	// Meetings data
-	let existingMeetings = $state<Meet[]>([]);
+	let existingMeetings = $state<Meeting[]>([]);
 	let loadingMeetings = $state(false);
-	let meetingsUnsubscribe: Unsubscribe | null = null;
+	let meetingsUnsubscribe: (() => void) | null = null;
 
 	// Reference to time slots container for scrolling
 	let timeSlotsContainer = $state<HTMLDivElement | null>(null);
+
+	// Track if we need to scroll after loading completes
+	let pendingScrollToFirstSlot = $state(false);
 
 	// Generate time slots from 8:00 to 22:00 in 15-minute increments
 	const allTimeSlots = $derived.by(() => {
@@ -61,6 +53,17 @@
 	onMount(async () => {
 		await selectFirstAvailableDay();
 		initialized = true;
+	});
+
+	// Effect to scroll to first available slot after loading completes
+	$effect(() => {
+		if (pendingScrollToFirstSlot && !loadingMeetings && timeSlotsContainer) {
+			// Use a small timeout to ensure DOM is fully rendered
+			setTimeout(() => {
+				scrollToFirstAvailableSlot();
+				pendingScrollToFirstSlot = false;
+			}, 50);
+		}
 	});
 
 	async function selectFirstAvailableDay() {
@@ -87,8 +90,8 @@
 					);
 				}
 				loadMeetingsForDate(checkDate);
-				// Scroll to first available slot after a small delay for DOM to update
-				setTimeout(() => scrollToFirstAvailableSlot(), 150);
+				// Mark that we need to scroll after loading completes
+				pendingScrollToFirstSlot = true;
 				return;
 			}
 		}
@@ -230,8 +233,8 @@
 		const slotEnd = new Date(slotStart.getTime() + 60 * 60 * 1000); // 1 hour later
 
 		return existingMeetings.some((meeting) => {
-			const meetingStart = meeting.start_time.toDate();
-			const meetingEnd = meeting.end_time.toDate();
+			const meetingStart = meeting.start_time;
+			const meetingEnd = meeting.end_time;
 			// Check for overlap: new meeting starts before existing ends AND new meeting ends after existing starts
 			return slotStart < meetingEnd && slotEnd > meetingStart;
 		});
@@ -273,35 +276,13 @@
 		}
 
 		loadingMeetings = true;
-		const db = getFirebaseDb();
+		loadingMeetings = true;
 
-		if (!db) {
-			loadingMeetings = false;
-			return;
-		}
-
-		const startOfDay = new Date(date);
-		startOfDay.setHours(0, 0, 0, 0);
-
-		const endOfDay = new Date(date);
-		endOfDay.setHours(23, 59, 59, 999);
-
-		const meetsQuery = query(
-			collection(db, COLLECTIONS.MEETS),
-			where("start_time", ">=", Timestamp.fromDate(startOfDay)),
-			where("start_time", "<=", Timestamp.fromDate(endOfDay)),
-		);
-
-		// Subscribe to real-time updates
-		meetingsUnsubscribe = onSnapshot(
-			meetsQuery,
-			(snapshot) => {
-				existingMeetings = snapshot.docs
-					.map((doc) => ({ id: doc.id, ...doc.data() }) as Meet)
-					.filter(
-						(m) =>
-							m.status === "pending" || m.status === "confirmed",
-					);
+		// Subscribe to real-time updates via Service
+		meetingsUnsubscribe = meetingService.subscribeToMeetings(
+			date,
+			(meetings) => {
+				existingMeetings = meetings;
 				loadingMeetings = false;
 			},
 			(error) => {
@@ -332,8 +313,8 @@
 		selectedTime = null;
 		showBookingForm = false;
 		loadMeetingsForDate(dayData.date);
-		// Scroll to first available slot
-		setTimeout(() => scrollToFirstAvailableSlot(), 100);
+		// Mark that we need to scroll after loading completes
+		pendingScrollToFirstSlot = true;
 	}
 
 	function selectTime(time: string) {
@@ -413,13 +394,6 @@
 		isSubmitting = true;
 		bookingError = null;
 
-		const db = getFirebaseDb();
-		if (!db) {
-			bookingError = i18n.scheduling.errors.connection;
-			isSubmitting = false;
-			return;
-		}
-
 		const [hours, minutes] = selectedTime.split(":").map(Number);
 		const startTime = new Date(selectedDate);
 		startTime.setHours(hours, minutes, 0, 0);
@@ -427,58 +401,17 @@
 		const endTime = new Date(startTime);
 		endTime.setHours(endTime.getHours() + 1);
 
-		let meetLink: string | null = null;
-		let calendarEventId: string | null = null;
-
 		try {
-			// Create Google Calendar event with Meet
-			const calendarResponse = await fetch(
-				"https://europe-west1-savaitech.cloudfunctions.net/createCalendarEvent",
+			await meetingService.bookMeeting(
 				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({
-						guestName,
-						guestEmail,
-						meetingObjective,
-						startTime: startTime.toISOString(),
-						endTime: endTime.toISOString(),
-						language: getLanguage(),
-					}),
+					guestName,
+					guestEmail,
+					meetingObjective,
+					startTime,
+					endTime,
 				},
+				getLanguage(),
 			);
-
-			if (calendarResponse.ok) {
-				const calendarData = await calendarResponse.json();
-				meetLink = calendarData.meetLink;
-				calendarEventId = calendarData.eventId;
-			} else {
-				console.warn(
-					"Calendar API failed, continuing without Meet link",
-				);
-			}
-		} catch (calendarError) {
-			console.warn("Calendar API error:", calendarError);
-			// Continue without Meet link - we'll still save the booking
-		}
-
-		try {
-			await addDoc(collection(db, COLLECTIONS.MEETS), {
-				guest_name: guestName,
-				guest_email: guestEmail,
-				meeting_objective: meetingObjective,
-				start_time: Timestamp.fromDate(startTime),
-				end_time: Timestamp.fromDate(endTime),
-				timezone: "Europe/Madrid",
-				meet_link: meetLink,
-				calendar_event_id: calendarEventId,
-				status: "confirmed",
-				cancelled_at: null,
-				cancellation_reason: null,
-				admin_notes: null,
-				created_at: serverTimestamp(),
-				updated_at: serverTimestamp(),
-			});
 
 			// Success!
 			bookingSuccess = true;
@@ -496,9 +429,13 @@
 					loadMeetingsForDate(selectedDate);
 				}
 			}, 3000);
-		} catch (error) {
+		} catch (error: any) {
 			console.error("Booking error:", error);
-			bookingError = i18n.scheduling.errors.generic;
+			if (error.message === "invalid_email") {
+				bookingError = i18n.scheduling.errors.invalidEmail;
+			} else {
+				bookingError = i18n.scheduling.errors.generic;
+			}
 			isSubmitting = false;
 		}
 	}
